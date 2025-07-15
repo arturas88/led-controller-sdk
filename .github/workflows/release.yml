@@ -1,0 +1,225 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Test Before Release
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_sqlite, mysql, gd
+        coverage: xdebug
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-8.1-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-8.1-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run test suite
+      run: composer run-script test
+
+    - name: Run code quality checks
+      run: composer run-script quality
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    name: Build Release
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_sqlite, mysql, gd
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Extract version from tag
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+        # Generate changelog from git commits
+        if [ -f CHANGELOG.md ]; then
+          # Extract changelog for this version
+          CHANGELOG=$(awk "/^## \[$VERSION\]/,/^## \[/{if(/^## \[/ && !/^## \[$VERSION\]/) exit; print}" CHANGELOG.md)
+        else
+          # Generate changelog from git commits
+          CHANGELOG=$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD~1)..HEAD)
+        fi
+        
+        # Save changelog to file
+        echo "$CHANGELOG" > release_changelog.txt
+        
+        # Set output for GitHub release
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create distribution archive
+      run: |
+        # Create distribution directory
+        mkdir -p dist
+        
+        # Copy source files
+        cp -r src dist/
+        cp -r examples dist/
+        cp -r docs dist/
+        cp -r fonts dist/
+        cp vendor/autoload.php dist/
+        cp -r vendor/composer dist/
+        cp composer.json dist/
+        cp composer.lock dist/
+        cp README.md dist/
+        cp LICENSE dist/ || echo "No LICENSE file found"
+        
+        # Create archive
+        cd dist
+                  tar -czf ../led-controller-sdk-${{ steps.changelog.outputs.version }}.tar.gz .
+          zip -r ../led-controller-sdk-${{ steps.changelog.outputs.version }}.zip .
+        cd ..
+
+    - name: Generate release notes
+      run: |
+        cat > release_notes.md << EOF
+                  # LED Controller SDK ${{ steps.changelog.outputs.version }}
+        
+        ## What's New
+        
+        ${{ steps.changelog.outputs.changelog }}
+        
+        ## Installation
+        
+        ### Via Composer
+        \`\`\`bash
+                  composer require arturas88/led-controller-sdk:${{ steps.changelog.outputs.version }}
+        \`\`\`
+        
+        ### Manual Installation
+        Download the archive and extract it to your project directory.
+        
+        ## Requirements
+        
+        - PHP 8.0 or higher
+        - ext-sockets
+        - ext-json
+        - ext-mbstring
+        
+        ## Quick Start
+        
+        \`\`\`php
+        <?php
+        require_once 'vendor/autoload.php';
+        
+        use LEDController\LEDController;
+        
+        \$controller = new LEDController([
+            'ip' => '192.168.1.100'
+        ]);
+        
+        \$controller->connect();
+        \$controller->displayText('Hello, World!');
+        \$controller->disconnect();
+        \`\`\`
+        
+        ## Documentation
+        
+                  - [API Documentation](https://your-username.github.io/LEDController)
+          - [Examples](https://github.com/your-username/LEDController/tree/main/examples)
+          - [Protocol Documentation](https://github.com/your-username/LEDController/tree/main/docs)
+        
+        ## Support
+        
+        If you encounter any issues, please:
+                  1. Check the [documentation](https://your-username.github.io/LEDController)
+          2. Review the [examples](https://github.com/your-username/LEDController/tree/main/examples)
+          3. [Open an issue](https://github.com/your-username/LEDController/issues)
+        EOF
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.changelog.outputs.version }}
+        name: LED Controller SDK ${{ steps.changelog.outputs.version }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: ${{ contains(steps.changelog.outputs.version, '-') }}
+        files: |
+          led-controller-sdk-${{ steps.changelog.outputs.version }}.tar.gz
+          led-controller-sdk-${{ steps.changelog.outputs.version }}.zip
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update documentation
+      if: ${{ !contains(steps.changelog.outputs.version, '-') }}
+      run: |
+        # Trigger documentation update
+        curl -X POST \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/dispatches \
+          -d '{"event_type":"release-published","client_payload":{"version":"${{ steps.changelog.outputs.version }}"}}'
+
+  notify:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Notify Release
+
+    steps:
+    - name: Extract version
+      id: version
+      run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Create release summary
+      run: |
+        cat > $GITHUB_STEP_SUMMARY << EOF
+        # 🚀 Release ${{ steps.version.outputs.version }} Published
+        
+        ✅ **Tests**: Passed  
+        ✅ **Code Quality**: Passed  
+        ✅ **Build**: Success  
+        ✅ **Release**: Published  
+        
+        ## 📦 Assets
+        
+                  - \`led-controller-sdk-${{ steps.version.outputs.version }}.tar.gz\`
+          - \`led-controller-sdk-${{ steps.version.outputs.version }}.zip\`
+        
+        ## 🔗 Links
+        
+        - [Release Page](https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }})
+                  - [Documentation](https://your-username.github.io/LEDController)
+          - [Packagist](https://packagist.org/packages/arturas88/led-controller-sdk)
+        
+        ## 📋 Next Steps
+        
+        1. Update documentation if needed
+        2. Announce in community channels
+        3. Update dependent projects
+        EOF 

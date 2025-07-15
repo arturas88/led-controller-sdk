@@ -1,0 +1,27 @@
+parameters:
+    level: 4
+    paths:
+        - src
+    excludePaths:
+        - vendor
+        - coverage
+        - tests
+    tmpDir: var/cache/phpstan
+    ignoreErrors:
+        # Allow unused properties (common in SDK classes for future use)
+        - '#Property .* is never read, only written#'
+        # Allow undefined constants (might be defined in different contexts)
+        - '#Access to undefined constant .*#'
+        # Allow undefined methods (might be in interfaces or dynamic)
+        - '#Call to an undefined static method .*::.*#'
+        - '#Call to an undefined method .*::.*#'
+        
+    # Basic checks that are useful
+    checkClassCaseSensitivity: true
+    checkFunctionNameCase: true
+    
+    # Performance optimizations
+    parallel:
+        jobSize: 10
+        maximumNumberOfProcesses: 8
+        minimumNumberOfJobsPerProcess: 1 

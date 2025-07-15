@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<ruleset name="LED Controller SDK Coding Standards">
+<description>PHP CodeSniffer configuration for LED Controller SDK</description>
+
+    <!-- Include paths -->
+    <file>src</file>
+    <file>tests</file>
+    <file>examples</file>
+
+    <!-- Exclude paths -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/coverage/*</exclude-pattern>
+    <exclude-pattern>*/cache/*</exclude-pattern>
+    <exclude-pattern>*/var/*</exclude-pattern>
+
+    <!-- Base rules -->
+    <rule ref="PSR12"/>
+    <rule ref="PSR1"/>
+    <rule ref="PSR2"/>
+
+    <!-- Additional rules -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="150"/>
+        </properties>
+    </rule>
+
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+    <rule ref="Generic.PHP.DisallowShortOpenTag"/>
+    <rule ref="Generic.PHP.DisallowAlternativePHPTags"/>
+    <rule ref="Generic.WhiteSpace.DisallowTabIndent"/>
+    <rule ref="Generic.Files.ByteOrderMark"/>
+    <rule ref="Generic.Files.LineEndings"/>
+    <rule ref="Generic.Files.EndFileNewline"/>
+
+    <!-- Squiz rules -->
+    <rule ref="Squiz.Arrays.ArrayBracketSpacing"/>
+    <rule ref="Squiz.Classes.ValidClassName"/>
+    <rule ref="Squiz.Functions.FunctionDeclarationArgumentSpacing"/>
+    <rule ref="Squiz.Scope.MethodScope"/>
+    <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace"/>
+    <rule ref="Squiz.WhiteSpace.ScopeKeywordSpacing"/>
+
+    <!-- Custom rules -->
+    <rule ref="Generic.NamingConventions.UpperCaseConstantName"/>
+    <rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
+    <rule ref="Generic.CodeAnalysis.EmptyStatement"/>
+    <rule ref="Generic.CodeAnalysis.UselessOverridingMethod"/>
+    <rule ref="Generic.Commenting.Todo"/>
+    <rule ref="Generic.Commenting.Fixme"/>
+
+    <!-- Disable some rules for specific files -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>examples/*.php</exclude-pattern>
+    </rule>
+
+    <rule ref="PSR12.Files.FileHeader.SpacingAfterBlock">
+        <exclude-pattern>examples/*.php</exclude-pattern>
+    </rule>
+
+    <!-- Allow long lines in documentation -->
+    <rule ref="Generic.Files.LineLength">
+        <exclude-pattern>docs/*.md</exclude-pattern>
+    </rule>
+
+    <!-- Show progress -->
+    <arg value="p"/>
+    
+    <!-- Show colors -->
+    <arg value="s"/>
+    <arg name="colors"/>
+    
+    <!-- Show sniff codes -->
+    <arg value="n"/>
+    
+    <!-- Parallel processing -->
+    <arg name="parallel" value="8"/>
+    
+    <!-- Extensions to check -->
+    <arg name="extensions" value="php"/>
+    
+    <!-- Ignore warnings -->
+    <arg name="warning-severity" value="0"/>
+</ruleset> 

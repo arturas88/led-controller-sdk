@@ -1,0 +1,88 @@
+# Composer
+/vendor/
+composer.phar
+composer.lock
+
+# PHPUnit
+/coverage/
+/phpunit.xml
+.phpunit.result.cache
+
+# PHPStan
+/var/
+phpstan.phar
+
+# PHP CS Fixer
+/.php-cs-fixer.cache
+.php_cs.cache
+
+# IDE
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+/logs/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Documentation build
+/site/
+/docs/api/
+/docs/examples.md
+/docs/coverage-badge.md
+/docs/index.md
+mkdocs.yml
+
+# Release files
+/dist/
+*.tar.gz
+*.zip
+release_*.txt
+release_*.md
+
+# Temporary files
+/tmp/
+/temp/
+
+# Node modules (for documentation)
+node_modules/
+package-lock.json
+
+# Cache directories
+.cache/
+cache/
+
+# Build artifacts
+build/
+dist/
+
+# Database
+*.db
+*.sqlite
+
+# Configuration files (keep examples, ignore actual config)
+config.php
+settings.php
+
+# Examples IP configuration (keep examples as templates)
+examples/config.php
+
+# Test output
+testdox.html
+junit.xml 
