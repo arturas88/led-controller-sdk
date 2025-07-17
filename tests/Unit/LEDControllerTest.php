@@ -131,7 +131,7 @@ class LEDControllerTest extends TestCase
         $color1 = ['r' => 255, 'g' => 0, 'b' => 0]; // Red
         $color2 = ['r' => 0, 'g' => 0, 'b' => 255]; // Blue
         $blended = Color::RED->blendWith($color2, 0.5);
-        
+
         $this->assertIsArray($blended);
         $this->assertGreaterThan(0, $blended['r']);
         $this->assertGreaterThan(0, $blended['b']);
@@ -141,7 +141,7 @@ class LEDControllerTest extends TestCase
     {
         $this->assertEquals(0, Color::BLACK->getBrightness());
         $this->assertEquals(255, Color::WHITE->getBrightness());
-        
+
         $redBrightness = Color::RED->getBrightness();
         $this->assertGreaterThan(50, $redBrightness);
         $this->assertLessThan(150, $redBrightness);
@@ -151,7 +151,7 @@ class LEDControllerTest extends TestCase
     {
         $this->assertTrue(Color::BLACK->isDark());
         $this->assertFalse(Color::BLACK->isLight());
-        
+
         $this->assertFalse(Color::WHITE->isDark());
         $this->assertTrue(Color::WHITE->isLight());
     }
@@ -161,7 +161,7 @@ class LEDControllerTest extends TestCase
         $startColor = ['r' => 255, 'g' => 0, 'b' => 0];
         $endColor = ['r' => 0, 'g' => 0, 'b' => 255];
         $gradient = Color::createGradient($startColor, $endColor, 5);
-        
+
         $this->assertCount(5, $gradient);
         $this->assertEquals($startColor, $gradient[0]);
         $this->assertEquals($endColor, $gradient[4]);
@@ -170,7 +170,7 @@ class LEDControllerTest extends TestCase
     public function testColorGetAllRgbColors()
     {
         $colors = Color::getAllRgbColors();
-        
+
         $this->assertIsArray($colors);
         $this->assertArrayHasKey('BLACK', $colors);
         $this->assertArrayHasKey('WHITE', $colors);
@@ -182,7 +182,7 @@ class LEDControllerTest extends TestCase
     public function testColorGetAllPalettes()
     {
         $palettes = Color::getAllPalettes();
-        
+
         $this->assertIsArray($palettes);
         $this->assertArrayHasKey('basic', $palettes);
         $this->assertArrayHasKey('warm', $palettes);

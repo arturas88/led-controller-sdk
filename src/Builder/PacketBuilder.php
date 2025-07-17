@@ -257,14 +257,17 @@ class PacketBuilder
         $cmdCode = ($queryCommand instanceof Command) ? $queryCommand->value : $queryCommand;
 
         if (
-            !in_array($cmdCode, [
-            Command::QUERY_VERSION->value,
-            Command::POWER_INFO->value,
-            Command::QUERY_TEMPERATURE->value,
-            Command::QUERY_DISK_SPACE->value,
-            Command::TIME_QUERY_SET->value,
-            Command::BRIGHTNESS_QUERY_SET->value
-            ])
+            !in_array(
+                $cmdCode,
+                [
+                    Command::QUERY_VERSION->value,
+                    Command::POWER_INFO->value,
+                    Command::QUERY_TEMPERATURE->value,
+                    Command::QUERY_DISK_SPACE->value,
+                    Command::TIME_QUERY_SET->value,
+                    Command::BRIGHTNESS_QUERY_SET->value
+                ]
+            )
         ) {
             throw new \InvalidArgumentException("Command is not a query command");
         }

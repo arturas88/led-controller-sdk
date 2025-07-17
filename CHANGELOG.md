@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-01-27
+
+### Changed
+- **PHP Version Requirement**: Updated minimum PHP version from 8.0 to 8.2 for better performance and modern features
+- **Code Quality**: Improved code formatting and consistency across all files
+- **Test Coverage**: Enhanced unit tests with better assertions and edge case coverage
+
+### Development
+- Updated PHPStan configuration for stricter type checking
+- Improved PHP CS Fixer rules for consistent code style
+- Enhanced test suite with more comprehensive coverage
+- Code cleanup and formatting improvements
+
 ## [Unreleased]
 
 ### Added
@@ -105,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions workflow for CI/CD
 - Automated documentation generation
 
-[Unreleased]: https://github.com/arturas88/led-controller-sdk/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/arturas88/led-controller-sdk/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/arturas88/led-controller-sdk/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/arturas88/led-controller-sdk/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/arturas88/led-controller-sdk/releases/tag/v1.0.0 

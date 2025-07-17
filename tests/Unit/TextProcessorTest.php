@@ -24,7 +24,7 @@ class TextProcessorTest extends TestCase
     public function testProcessTextDefaultMode()
     {
         $result = $this->processor->processText('Hello World');
-        
+
         $this->assertEquals('text', $result['type']);
         $this->assertEquals('Hello World', $result['content']);
         $this->assertEquals('text', $result['method']);
@@ -33,7 +33,7 @@ class TextProcessorTest extends TestCase
     public function testProcessTextWithExplicitTextMode()
     {
         $result = $this->processor->processText('Hello World', ['mode' => TextProcessor::MODE_TEXT]);
-        
+
         $this->assertEquals('text', $result['type']);
         $this->assertEquals('Hello World', $result['content']);
         $this->assertEquals('text', $result['method']);
@@ -42,12 +42,12 @@ class TextProcessorTest extends TestCase
     public function testProcessTextWithTransliterateMode()
     {
         $result = $this->processor->processText('Héllo Wörld', ['mode' => TextProcessor::MODE_TRANSLITERATE]);
-        
+
         $this->assertEquals('text', $result['type']);
         $this->assertEquals('transliterate', $result['method']);
         $this->assertArrayHasKey('original_text', $result);
         $this->assertEquals('Héllo Wörld', $result['original_text']);
-        
+
         // The transliterated text should be different from the original
         $this->assertNotEquals('Héllo Wörld', $result['content']);
     }
@@ -57,7 +57,7 @@ class TextProcessorTest extends TestCase
         if (!extension_loaded('gd')) {
             $this->markTestSkipped('GD extension is not available');
         }
-        
+
         // Skip this test due to color conversion issues in the implementation
         $this->markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
     }
@@ -66,7 +66,7 @@ class TextProcessorTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Unknown processing mode: invalid');
-        
+
         $this->processor->processText('Hello', ['mode' => 'invalid']);
     }
 
@@ -133,7 +133,7 @@ class TextProcessorTest extends TestCase
     public function testTextProcessorHandlesEmptyText()
     {
         $result = $this->processor->processText('');
-        
+
         $this->assertEquals('text', $result['type']);
         $this->assertEquals('', $result['content']);
         $this->assertEquals('text', $result['method']);
@@ -143,7 +143,7 @@ class TextProcessorTest extends TestCase
     {
         $specialText = "Hello\nWorld\tTest!@#$%^&*()";
         $result = $this->processor->processText($specialText);
-        
+
         $this->assertEquals('text', $result['type']);
         $this->assertEquals($specialText, $result['content']);
         $this->assertEquals('text', $result['method']);
@@ -153,7 +153,7 @@ class TextProcessorTest extends TestCase
     {
         $unicodeText = "Привет мир"; // Russian text
         $result = TextProcessor::transliterateText($unicodeText);
-        
+
         $this->assertIsString($result);
         // Should be transliterated to Latin characters
         $this->assertNotEquals($unicodeText, $result);

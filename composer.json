@@ -1,7 +1,7 @@
 {
     "name": "arturas88/led-controller-sdk",
     "description": "PHP SDK for LED Controller communication and management",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "type": "library",
     "license": "MIT",
     "keywords": ["led", "controller", "sdk", "display", "communication", "c-power5200", "serial", "network"],
@@ -23,7 +23,7 @@
         }
     ],
     "require": {
-        "php": ">=8.0",
+        "php": ">=8.2",
         "ext-sockets": "*",
         "ext-json": "*",
         "ext-mbstring": "*"

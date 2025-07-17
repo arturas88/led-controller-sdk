@@ -187,13 +187,13 @@ class ExternalCallsManager
 
     /**
      * Get display dimensions from controller configuration
-     * 
+     *
      * @return array Display dimensions ['width' => int, 'height' => int]
      */
     public function getDisplayDimensions(): array
     {
         $config = $this->controller->getConfig();
-        
+
         // Try to get from controller config first
         if (isset($config['displayWidth']) && isset($config['displayHeight'])) {
             return [
@@ -201,7 +201,7 @@ class ExternalCallsManager
                 'height' => $config['displayHeight']
             ];
         }
-        
+
         // Try to get from display config
         if (isset($config['display']['defaultWidth']) && isset($config['display']['defaultHeight'])) {
             return [
@@ -209,7 +209,7 @@ class ExternalCallsManager
                 'height' => $config['display']['defaultHeight']
             ];
         }
-        
+
         // Fallback to common default dimensions
         return [
             'width' => 128,
@@ -219,7 +219,7 @@ class ExternalCallsManager
 
     /**
      * Create a table layout with equally divided windows
-     * 
+     *
      * @param int $columns Number of columns in the table
      * @param int $rows Number of rows in the table
      * @param array $displayDimensions Optional display dimensions ['width' => int, 'height' => int]
@@ -232,46 +232,46 @@ class ExternalCallsManager
         if ($columns < 1 || $columns > 8) {
             throw new ExternalCallsException("Columns must be between 1 and 8");
         }
-        
+
         if ($rows < 1 || $rows > 8) {
             throw new ExternalCallsException("Rows must be between 1 and 8");
         }
-        
+
         $totalWindows = $columns * $rows;
         if ($totalWindows > 8) {
             throw new ExternalCallsException("Total windows ($totalWindows) cannot exceed 8");
         }
-        
+
         // Get display dimensions (use controller config if not provided)
         if ($displayDimensions === null) {
             $displayDimensions = $this->getDisplayDimensions();
         }
-        
+
         $displayWidth = $displayDimensions['width'] ?? 128;
         $displayHeight = $displayDimensions['height'] ?? 32;
-        
+
         // Calculate window dimensions
         $windowWidth = (int)($displayWidth / $columns);
         $windowHeight = (int)($displayHeight / $rows);
-        
+
         // Ensure minimum window size
         if ($windowWidth < 8 || $windowHeight < 8) {
             throw new ExternalCallsException("Window size too small: {$windowWidth}x{$windowHeight} pixels. Minimum is 8x8.");
         }
-        
+
         $windows = [];
         $windowId = 0;
-        
+
         // Create windows for each cell in the table
         for ($row = 0; $row < $rows; $row++) {
             for ($col = 0; $col < $columns; $col++) {
                 $x = $col * $windowWidth;
                 $y = $row * $windowHeight;
-                
+
                 // Adjust width/height for last column/row to use remaining space
                 $actualWidth = ($col === $columns - 1) ? ($displayWidth - $x) : $windowWidth;
                 $actualHeight = ($row === $rows - 1) ? ($displayHeight - $y) : $windowHeight;
-                
+
                 $windows[] = [
                     'id' => $windowId,
                     'x' => $x,
@@ -279,17 +279,17 @@ class ExternalCallsManager
                     'width' => $actualWidth,
                     'height' => $actualHeight
                 ];
-                
+
                 $windowId++;
             }
         }
-        
+
         return $windows;
     }
 
     /**
      * Create and apply a table layout with equally divided windows
-     * 
+     *
      * @param int $columns Number of columns in the table
      * @param int $rows Number of rows in the table
      * @param array $displayDimensions Optional display dimensions ['width' => int, 'height' => int]
@@ -299,10 +299,10 @@ class ExternalCallsManager
     public function applyTableLayout(int $columns, int $rows, ?array $displayDimensions = null): array
     {
         $windows = $this->createTableLayout($columns, $rows, $displayDimensions);
-        
+
         // Apply the split screen layout
         $this->splitScreen($windows);
-        
+
         return $windows;
     }
 
@@ -336,17 +336,5 @@ class ExternalCallsManager
         }
 
         return (int) $effect;
-    }
-
-    /**
-     * Convert alignment value to integer
-     */
-    private function convertAlignToInt(mixed $align): int
-    {
-        if ($align instanceof Alignment) {
-            return $align->value;
-        }
-
-        return (int) $align;
     }
 }

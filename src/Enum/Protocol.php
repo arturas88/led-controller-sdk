@@ -15,7 +15,7 @@ class Protocol
 
     public const COLOR_MODE_1BIT = 0;
     public const COLOR_MODE_3BIT = 1;
-    public const COLOR_FULL = 1;
+    public const COLOR_FULL = 2;
 
     // =========================================================================
     // CLOCK FORMAT CONSTANTS

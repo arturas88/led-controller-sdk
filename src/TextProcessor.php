@@ -68,6 +68,11 @@ class TextProcessor
                 'method' => 'to_image',
                 'image_dimensions' => ['width' => $options['width'], 'height' => $options['height']]
             ],
+            default => [
+                'type' => 'text',
+                'content' => $text,
+                'method' => 'text'
+            ],
         };
     }
 

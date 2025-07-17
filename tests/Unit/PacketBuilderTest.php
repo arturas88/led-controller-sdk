@@ -22,7 +22,7 @@ class PacketBuilderTest extends TestCase
     public function testCreateHardwareRestartPacket()
     {
         $packet = PacketBuilder::createHardwareRestartPacket($this->cardId);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x2D, $packet->getCommand());
@@ -32,7 +32,7 @@ class PacketBuilderTest extends TestCase
     public function testCreateAppRestartPacket()
     {
         $packet = PacketBuilder::createAppRestartPacket($this->cardId);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0xFE, $packet->getCommand());
@@ -42,7 +42,7 @@ class PacketBuilderTest extends TestCase
     public function testCreateTimeQueryPacket()
     {
         $packet = PacketBuilder::createTimeQueryPacket($this->cardId);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x47, $packet->getCommand());
@@ -53,15 +53,15 @@ class PacketBuilderTest extends TestCase
     {
         $dateTime = new DateTime('2024-01-15 14:30:45');
         $packet = PacketBuilder::createTimeSetPacket($this->cardId, $dateTime);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x47, $packet->getCommand());
-        
+
         $data = $packet->getData();
         $this->assertStringStartsWith(chr(0x00), $data); // Set time command
         $this->assertEquals(8, strlen($data)); // Command + 7 time bytes
-        
+
         // Test individual time components
         $this->assertEquals(45, ord($data[1])); // Second
         $this->assertEquals(30, ord($data[2])); // Minute
@@ -74,7 +74,7 @@ class PacketBuilderTest extends TestCase
     public function testCreateBrightnessQueryPacket()
     {
         $packet = PacketBuilder::createBrightnessQueryPacket($this->cardId);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x46, $packet->getCommand());
@@ -85,15 +85,15 @@ class PacketBuilderTest extends TestCase
     {
         $brightness = 128;
         $packet = PacketBuilder::createBrightnessSetPacket($this->cardId, $brightness);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x46, $packet->getCommand());
-        
+
         $data = $packet->getData();
         $this->assertStringStartsWith(chr(0x00), $data); // Set brightness command
         $this->assertEquals(25, strlen($data)); // Command + 24 brightness bytes
-        
+
         // All hours should be set to the same brightness
         for ($i = 1; $i < 25; $i++) {
             $this->assertEquals($brightness, ord($data[$i]));
@@ -105,10 +105,10 @@ class PacketBuilderTest extends TestCase
         $brightness = 200;
         $hour = 10;
         $packet = PacketBuilder::createBrightnessSetPacket($this->cardId, $brightness, $hour);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $data = $packet->getData();
-        
+
         // For simplicity, the current implementation sets all hours to the same value
         // In a real implementation, we'd need to query current values first
         for ($i = 1; $i < 25; $i++) {
@@ -119,7 +119,7 @@ class PacketBuilderTest extends TestCase
     public function testCreateVersionQueryPacket()
     {
         $packet = PacketBuilder::createVersionQueryPacket($this->cardId);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x2E, $packet->getCommand());
@@ -129,7 +129,7 @@ class PacketBuilderTest extends TestCase
     public function testCreateTemperatureQueryPacket()
     {
         $packet = PacketBuilder::createTemperatureQueryPacket($this->cardId);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x75, $packet->getCommand());
@@ -139,7 +139,7 @@ class PacketBuilderTest extends TestCase
     public function testCreateDiskSpaceQueryPacket()
     {
         $packet = PacketBuilder::createDiskSpaceQueryPacket($this->cardId);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x29, $packet->getCommand());
@@ -150,7 +150,7 @@ class PacketBuilderTest extends TestCase
     {
         $filename = 'test.txt';
         $packet = PacketBuilder::createFileRemovePacket($this->cardId, $filename);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x2C, $packet->getCommand());
@@ -164,17 +164,17 @@ class PacketBuilderTest extends TestCase
             ['x' => 64, 'y' => 0, 'width' => 64, 'height' => 16],
             ['x' => 0, 'y' => 16, 'width' => 128, 'height' => 16]
         ];
-        
+
         $packet = PacketBuilder::createSplitScreenPacket($this->cardId, $windows);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x7B, $packet->getCommand());
         $this->assertEquals(0x01, $packet->getSubCommand());
-        
+
         $data = $packet->getData();
         $this->assertEquals(3, ord($data[0])); // Number of windows
-        
+
         // Check window data structure (each window is 8 bytes: 2 bytes each for x, y, width, height)
         $expectedLength = 1 + (3 * 8); // 1 byte for count + 3 windows * 8 bytes each
         $this->assertEquals($expectedLength, strlen($data));
@@ -192,20 +192,20 @@ class PacketBuilderTest extends TestCase
               'font' => FontSize::FONT_24,
               'color' => Color::RED
         ];
-        
+
         $packet = PacketBuilder::createTextPacket($this->cardId, $windowNo, $text, $options);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x7B, $packet->getCommand());
         $this->assertEquals(0x02, $packet->getSubCommand());
-        
+
         $data = $packet->getData();
         $this->assertEquals($windowNo, ord($data[0]));
         $this->assertEquals($options['effect']->value, ord($data[1]));
         $this->assertEquals($options['align']->value, ord($data[2]));
         $this->assertEquals($options['speed'], ord($data[3]));
-        
+
         // Stay time is 2 bytes (big-endian)
         $stayBytes = unpack('n', substr($data, 4, 2));
         $this->assertEquals($options['stay'], $stayBytes[1]);
@@ -215,20 +215,20 @@ class PacketBuilderTest extends TestCase
     {
         $windowNo = 1;
         $text = 'Test';
-        
+
         $packet = PacketBuilder::createTextPacket($this->cardId, $windowNo, $text);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x7B, $packet->getCommand());
         $this->assertEquals(0x02, $packet->getSubCommand());
-        
+
         $data = $packet->getData();
         $this->assertEquals($windowNo, ord($data[0]));
         $this->assertEquals(Effect::DRAW->value, ord($data[1])); // Default effect
         $this->assertEquals(Alignment::LEFT->value, ord($data[2])); // Default align
         $this->assertEquals(5, ord($data[3])); // Default speed
-        
+
         // Default stay time should be 10
         $stayBytes = unpack('n', substr($data, 4, 2));
         $this->assertEquals(10, $stayBytes[1]);
@@ -248,25 +248,25 @@ class PacketBuilderTest extends TestCase
             'fontStyle' => 2,
             'color' => Color::BLUE
         ];
-        
+
         $packet = PacketBuilder::createPureTextPacket($this->cardId, $windowNo, $text, $options);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x7B, $packet->getCommand());
         $this->assertEquals(0x12, $packet->getSubCommand());
-        
+
         $data = $packet->getData();
         $this->assertEquals($windowNo, ord($data[0]));
         $this->assertEquals($options['effect']->value, ord($data[1]));
-        
+
         // Alignment byte combines horizontal and vertical alignment
         $alignByte = ord($data[2]);
         $this->assertEquals($options['align']->value & 0x03, $alignByte & 0x03);
         $this->assertEquals(($options['valign']->value & 0x03) << 2, $alignByte & 0x0C);
-        
+
         $this->assertEquals($options['speed'], ord($data[3]));
-        
+
         // Stay time is 2 bytes (big-endian)
         $stayBytes = unpack('n', substr($data, 4, 2));
         $this->assertEquals($options['stay'], $stayBytes[1]);
@@ -275,7 +275,7 @@ class PacketBuilderTest extends TestCase
     public function testCreateSaveDataPacket()
     {
         $packet = PacketBuilder::createSaveDataPacket($this->cardId, true);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x7B, $packet->getCommand());
@@ -286,7 +286,7 @@ class PacketBuilderTest extends TestCase
     public function testCreateSaveDataPacketNoSave()
     {
         $packet = PacketBuilder::createSaveDataPacket($this->cardId, false);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x7B, $packet->getCommand());
@@ -297,7 +297,7 @@ class PacketBuilderTest extends TestCase
     public function testCreateExitSplitScreenPacket()
     {
         $packet = PacketBuilder::createExitSplitScreenPacket($this->cardId);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x7B, $packet->getCommand());
@@ -308,7 +308,7 @@ class PacketBuilderTest extends TestCase
     public function testCreateNetworkQueryPacket()
     {
         $packet = PacketBuilder::createNetworkQueryPacket($this->cardId);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x3C, $packet->getCommand());
@@ -326,23 +326,23 @@ class PacketBuilderTest extends TestCase
             'timeout' => 5000,
             'retries' => 3,
         ];
-        
+
         $packet = PacketBuilder::createNetworkSetPacket($this->cardId, $config);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x3C, $packet->getCommand());
-        
+
         $data = $packet->getData();
         $this->assertStringStartsWith(chr(0x00), $data); // Set network command
         $this->assertEquals(19, strlen($data)); // Command + 4 IP + 4 gateway + 4 subnet + 2 port + 4 networkId
-        
+
         // Test IP address bytes
         $ipBytes = [192, 168, 1, 222];
         for ($i = 0; $i < 4; $i++) {
             $this->assertEquals($ipBytes[$i], ord($data[1 + $i]));
         }
-        
+
         // Test port (big-endian) - comes after IP(4) + Gateway(4) + Subnet(4) = position 13
         $portBytes = unpack('n', substr($data, 13, 2));
         $this->assertEquals($config['port'], $portBytes[1]);
@@ -360,31 +360,31 @@ class PacketBuilderTest extends TestCase
             'speed' => 6,
             'stay' => 12
         ];
-        
+
         $packet = PacketBuilder::createImagePacket($this->cardId, $windowNo, $imageData, $options);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x7B, $packet->getCommand());
         $this->assertEquals(0x03, $packet->getSubCommand());
-        
+
         $data = $packet->getData();
         $this->assertEquals($windowNo, ord($data[0]));
         $this->assertEquals($options['effect']->value, ord($data[1]));
         $this->assertEquals($options['mode']->value, ord($data[2]));
         $this->assertEquals($options['speed'], ord($data[3]));
-        
+
         // Stay time (big-endian)
         $stayBytes = unpack('n', substr($data, 4, 2));
         $this->assertEquals($options['stay'], $stayBytes[1]);
-        
+
         // Test position (big-endian) - comes after windowNo + effect + mode + speed + stay
         $xBytes = unpack('n', substr($data, 6, 2));
         $this->assertEquals($options['x'], $xBytes[1]);
-        
+
         $yBytes = unpack('n', substr($data, 8, 2));
         $this->assertEquals($options['y'], $yBytes[1]);
-        
+
         // Check that image data is included
         $this->assertStringContainsString($imageData, $data);
     }
@@ -393,30 +393,46 @@ class PacketBuilderTest extends TestCase
     {
         $windowNo = 1;
         $options = [
-                          'font' => FontSize::FONT_24,
+            'font' => FontSize::FONT_24,
             'fontStyle' => 1,
             'color' => Color::GREEN,
-                          'format' => Protocol::CLOCK_12_HOUR,
-                          'effect' => Effect::DRAW,
+            'format' => Protocol::CLOCK_12_HOUR,
+            'effect' => Effect::DRAW,
             'speed' => 5,
             'stay' => 10
         ];
-        
+
         $packet = PacketBuilder::createClockPacket($this->cardId, $windowNo, $options);
-        
+
         $this->assertInstanceOf(Packet::class, $packet);
         $this->assertEquals($this->cardId, $packet->getCardId());
         $this->assertEquals(0x7B, $packet->getCommand());
         $this->assertEquals(0x05, $packet->getSubCommand());
-        
+
         $data = $packet->getData();
         $this->assertEquals($windowNo, ord($data[0]));
-        $this->assertEquals($options['effect']->value, ord($data[1]));
-        // Align is at position 2
-        $this->assertEquals($options['speed'], ord($data[3]));
-        
-        // Stay time (big-endian)
-        $stayBytes = unpack('n', substr($data, 4, 2));
+
+        // Stay time is at position 1-2 (2 bytes, big-endian)
+        $stayBytes = unpack('n', substr($data, 1, 2));
         $this->assertEquals($options['stay'], $stayBytes[1]);
+
+        // Calendar type is at position 3
+        $this->assertEquals(0, ord($data[3])); // Default: Gregorian calendar
+
+        // Format byte is at position 4
+        $formatByte = ord($data[4]);
+        $this->assertEquals(0x01, $formatByte & 0x01); // 12-hour format bit
+
+        // Content selection is at position 5
+        $this->assertEquals(Protocol::CLOCK_SHOW_HOUR | Protocol::CLOCK_SHOW_MINUTE, ord($data[5]));
+
+        // Font size is at position 6
+        $this->assertEquals(FontSize::FONT_24->value, ord($data[6]));
+
+        // Color RGB values are at positions 7, 8, 9
+        $greenRgb = Color::GREEN->toRgb();
+        $this->assertEquals($greenRgb['r'], ord($data[7]));
+        $this->assertEquals($greenRgb['g'], ord($data[8]));
+        $this->assertEquals($greenRgb['b'], ord($data[9]));
     }
 }

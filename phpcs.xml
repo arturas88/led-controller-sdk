@@ -16,7 +16,6 @@
     <!-- Base rules -->
     <rule ref="PSR12"/>
     <rule ref="PSR1"/>
-    <rule ref="PSR2"/>
 
     <!-- Additional rules -->
     <rule ref="Generic.Files.LineLength">

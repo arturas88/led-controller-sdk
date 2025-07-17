@@ -336,11 +336,14 @@ class TemperatureManager
     {
         // Validate format
         if (
-            !in_array($options['format'] ?? self::FORMAT_CELSIUS, [
-            self::FORMAT_CELSIUS,
-            self::FORMAT_FAHRENHEIT,
-            self::FORMAT_HUMIDITY
-            ])
+            !in_array(
+                $options['format'] ?? self::FORMAT_CELSIUS,
+                [
+                    self::FORMAT_CELSIUS,
+                    self::FORMAT_FAHRENHEIT,
+                    self::FORMAT_HUMIDITY
+                ]
+            )
         ) {
             throw new ValidationException("Invalid temperature format");
         }
@@ -348,7 +351,10 @@ class TemperatureManager
         // Validate refresh interval
         if (
             isset($options['refreshInterval']) &&
-            ($options['refreshInterval'] < 1 || $options['refreshInterval'] > 3600)
+            (
+                $options['refreshInterval'] < 1 ||
+                $options['refreshInterval'] > 3600
+            )
         ) {
             throw new ValidationException("Refresh interval must be between 1 and 3600 seconds");
         }

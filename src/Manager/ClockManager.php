@@ -594,7 +594,7 @@ class ClockManager
             }
 
             // Determine which mode will be used
-            if ($options['fallbackToTextMode'] ?? false || $this->shouldUseFallbackMode($options)) {
+            if (($options['fallbackToTextMode'] ?? false) || $this->shouldUseFallbackMode($options)) {
                 $result['mode'] = 'text_fallback';
                 $result['message'] = 'Clock will be displayed as text (fallback mode)';
 
@@ -622,9 +622,7 @@ class ClockManager
     private function validateClockOptions(array $options): void
     {
         // Validate window number
-        if (!isset($options['windowNo'])) {
-            // Window number will be passed separately, this is just for options validation
-        }
+        // Window number will be passed separately, this is just for options validation
 
         // Validate format options
         if (!in_array($options['format'] ?? self::FORMAT_24_HOUR, [self::FORMAT_12_HOUR, self::FORMAT_24_HOUR])) {
@@ -640,12 +638,15 @@ class ClockManager
         }
 
         if (
-            !in_array($options['calendar'] ?? self::CALENDAR_GREGORIAN, [
-            self::CALENDAR_GREGORIAN,
-            self::CALENDAR_LUNAR,
-            self::CALENDAR_LUNAR_SOLAR,
-            self::CALENDAR_LUNAR_SOLAR_TERMS
-            ])
+            !in_array(
+                $options['calendar'] ?? self::CALENDAR_GREGORIAN,
+                [
+                    self::CALENDAR_GREGORIAN,
+                    self::CALENDAR_LUNAR,
+                    self::CALENDAR_LUNAR_SOLAR,
+                    self::CALENDAR_LUNAR_SOLAR_TERMS
+                ]
+            )
         ) {
             throw new ValidationException("Invalid calendar type");
         }
