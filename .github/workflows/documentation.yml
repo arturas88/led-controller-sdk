@@ -30,7 +30,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.1'
+        php-version: '8.2'
         extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_sqlite, mysql, gd
         tools: composer
 
@@ -39,9 +39,9 @@ jobs:
       uses: actions/cache@v3
       with:
         path: vendor
-        key: ${{ runner.os }}-php-8.1-${{ hashFiles('**/composer.lock') }}
+        key: ${{ runner.os }}-php-8.2-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
-          ${{ runner.os }}-php-8.1-
+          ${{ runner.os }}-php-8.2-
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
@@ -159,7 +159,7 @@ jobs:
         cat > mkdocs.yml << EOF
         site_name: LED Controller SDK Documentation
         site_description: PHP SDK for LED Controller
-        site_url: https://your-username.github.io/LEDController
+        site_url: https://arturas88.github.io/led-controller-sdk
         
         theme:
           name: material

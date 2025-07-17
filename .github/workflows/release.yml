@@ -17,7 +17,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.1'
+        php-version: '8.2'
         extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_sqlite, mysql, gd
         coverage: xdebug
 
@@ -26,9 +26,9 @@ jobs:
       uses: actions/cache@v3
       with:
         path: vendor
-        key: ${{ runner.os }}-php-8.1-${{ hashFiles('**/composer.lock') }}
+        key: ${{ runner.os }}-php-8.2-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
-          ${{ runner.os }}-php-8.1-
+          ${{ runner.os }}-php-8.2-
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
@@ -51,7 +51,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.1'
+        php-version: '8.2'
         extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_sqlite, mysql, gd
 
     - name: Install dependencies
@@ -125,7 +125,7 @@ jobs:
         
         ## Requirements
         
-        - PHP 8.0 or higher
+        - PHP 8.2 or higher
         - ext-sockets
         - ext-json
         - ext-mbstring
@@ -149,16 +149,16 @@ jobs:
         
         ## Documentation
         
-                  - [API Documentation](https://your-username.github.io/LEDController)
-          - [Examples](https://github.com/your-username/LEDController/tree/main/examples)
-          - [Protocol Documentation](https://github.com/your-username/LEDController/tree/main/docs)
+        - [API Documentation](https://arturas88.github.io/led-controller-sdk)
+        - [Examples](https://github.com/arturas88/led-controller-sdk/tree/main/examples)
+        - [Protocol Documentation](https://github.com/arturas88/led-controller-sdk/tree/main/docs)
         
         ## Support
         
         If you encounter any issues, please:
-                  1. Check the [documentation](https://your-username.github.io/LEDController)
-          2. Review the [examples](https://github.com/your-username/LEDController/tree/main/examples)
-          3. [Open an issue](https://github.com/your-username/LEDController/issues)
+        1. Check the [documentation](https://arturas88.github.io/led-controller-sdk)
+        2. Review the [examples](https://github.com/arturas88/led-controller-sdk/tree/main/examples)
+        3. [Open an issue](https://github.com/arturas88/led-controller-sdk/issues)
         EOF
 
     - name: Create GitHub Release
@@ -214,8 +214,8 @@ jobs:
         ## 🔗 Links
         
         - [Release Page](https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }})
-                  - [Documentation](https://your-username.github.io/LEDController)
-          - [Packagist](https://packagist.org/packages/arturas88/led-controller-sdk)
+        - [Documentation](https://arturas88.github.io/led-controller-sdk)
+        - [Packagist](https://packagist.org/packages/arturas88/led-controller-sdk)
         
         ## 📋 Next Steps
         
