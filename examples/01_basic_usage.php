@@ -189,6 +189,78 @@ try {
     
     echo "   ✓ Modern SDK demonstration complete!\n\n";
 
+    // Unified displayText() method demonstration
+    echo "11. Unified displayText() method demonstration...\n";
+    echo "   - Single source of truth for all text display\n\n";
+    
+    // Clear display for unified demonstration
+    $controller->clearDisplay();
+    
+    // Single window usage (default windowId = 0)
+    echo "   - Single window: \$controller->displayText() with default window\n";
+    $controller->displayText('UNIFIED API', [
+        'font' => FontSize::FONT_24,
+        'color' => Color::RED,
+        'align' => Alignment::CENTER,
+        'effect' => Effect::OPEN_CENTER_H
+    ]);
+    sleep(2);
+    
+    // Set up split screen for multi-window demonstration
+    echo "   - Setting up split screen for multi-window demo...\n";
+    $controller->external()->splitScreen([
+        ['x' => 0, 'y' => 0, 'width' => 128, 'height' => 32],
+        ['x' => 0, 'y' => 32, 'width' => 128, 'height' => 32]
+    ]);
+    
+    // Multi-window usage with window in options
+    echo "   - Window 0: \$controller->displayText() with window in options\n";
+    $controller->displayText('WINDOW 0', [
+        'window' => 0,
+        'font' => FontSize::FONT_16,
+        'color' => Color::BLUE,
+        'align' => Alignment::CENTER,
+        'effect' => Effect::OPEN_CENTER_H
+    ]);
+    sleep(1);
+    
+    echo "   - Window 1: \$controller->displayText() with window=1 in options\n";
+    $controller->displayText('WINDOW 1', [
+        'window' => 1,
+        'font' => FontSize::FONT_16,
+        'color' => Color::GREEN,
+        'align' => Alignment::CENTER,
+        'effect' => Effect::MOVE_RIGHT
+    ]);
+    sleep(2);
+    
+    // Color format demonstration
+    echo "   - Color format support: hex, RGB, enum\n";
+    $controller->displayText('HEX COLOR', [
+        'window' => 0,
+        'color' => '#FF6600', // Hex color
+        'font' => FontSize::FONT_16,
+        'align' => Alignment::CENTER
+    ]);
+    sleep(1);
+    
+    $controller->displayText('RGB COLOR', [
+        'window' => 1,
+        'color' => ['r' => 255, 'g' => 0, 'b' => 128], // RGB array
+        'font' => FontSize::FONT_16,
+        'align' => Alignment::CENTER
+    ]);
+    sleep(2);
+    
+    echo "   ✓ Unified displayText() method demonstrated\n\n";
+    
+    echo "Unified displayText() Method Benefits:\n";
+    echo "• \$controller->displayText(\$text, \$options) - Single method for all text display\n";
+    echo "• window option defaults to 0 for backward compatibility\n";
+    echo "• Full feature support: colors, fonts, effects, text processing\n";
+    echo "• Works for both single window and multi-window scenarios\n";
+    echo "• External calls manager delegates to this unified method\n\n";
+
     echo "=== Example completed successfully! ===\n";
     echo "Features demonstrated:\n";
     echo "• Modern PHP 8.1+ enum usage\n";

@@ -19,9 +19,9 @@ class ConfigManager
      */
     private const DEFAULT_CONFIG = [
         'network' => [
-            'ip' => '192.168.10.61',
+            'ip' => '192.168.1.222',
             'port' => 5200,
-            'gateway' => '192.168.10.1',
+            'gateway' => '192.168.1.1',
             'subnet' => '255.255.255.0',
             'networkId' => 0xFFFFFFFF,
             'timeout' => 5000,

@@ -318,10 +318,13 @@ class PacketBuilderTest extends TestCase
     public function testCreateNetworkSetPacket()
     {
         $config = [
-            'ip' => '192.168.1.100',
-            'subnet' => '255.255.255.0',
+            'ip' => '192.168.1.222',
+            'port' => 5200,
             'gateway' => '192.168.1.1',
-            'port' => 5200
+            'subnet' => '255.255.255.0',
+            'networkId' => 0xFFFFFFFF,
+            'timeout' => 5000,
+            'retries' => 3,
         ];
         
         $packet = PacketBuilder::createNetworkSetPacket($this->cardId, $config);
@@ -335,7 +338,7 @@ class PacketBuilderTest extends TestCase
         $this->assertEquals(19, strlen($data)); // Command + 4 IP + 4 gateway + 4 subnet + 2 port + 4 networkId
         
         // Test IP address bytes
-        $ipBytes = [192, 168, 1, 100];
+        $ipBytes = [192, 168, 1, 222];
         for ($i = 0; $i < 4; $i++) {
             $this->assertEquals($ipBytes[$i], ord($data[1 + $i]));
         }

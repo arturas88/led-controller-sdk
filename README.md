@@ -61,7 +61,7 @@ use LEDController\Enum\Alignment;
 
 // Create controller instance
 $controller = new LEDController([
-    'ip' => '192.168.10.61',
+    'ip' => '192.168.1.222',
     'port' => 5200,
     'cardId' => 1
 ]);
@@ -84,7 +84,7 @@ $controller->disconnect();
 ```php
 $controller = new LEDController([
     'communicationType' => 'network',
-    'ip' => '192.168.10.61',
+    'ip' => '192.168.1.222',
     'port' => 5200,
     'cardId' => 1,
     'timeout' => 5000,
@@ -175,6 +175,58 @@ $controller->displayText('Window 1', ['window' => 0]);
 $controller->displayText('Window 2', ['window' => 1]);
 ```
 
+### Table Layout Helper
+
+The SDK provides a convenient helper for creating equally divided table layouts:
+
+```php
+// Get display dimensions from controller configuration
+$dimensions = $controller->external()->getDisplayDimensions();
+echo "Display size: {$dimensions['width']}x{$dimensions['height']} pixels";
+
+// Create a 2x2 table layout (4 windows)
+$windows = $controller->external()->createTableLayout(2, 2);
+
+// Create a 4x2 table layout (8 windows) - like the original example
+$windows = $controller->external()->createTableLayout(4, 2);
+
+// Create with custom display dimensions
+$windows = $controller->external()->createTableLayout(3, 3, [
+    'width' => 192, 
+    'height' => 64
+]);
+
+// Apply layout in one step (creates and applies split screen)
+$windows = $controller->external()->applyTableLayout(2, 3);
+
+// Display content in table cells
+foreach ($windows as $index => $window) {
+    $controller->external()->displayText($window['id'], "Cell $index", [
+        'font' => FontSize::FONT_12,
+        'color' => Color::GREEN,
+        'align' => Alignment::CENTER
+    ]);
+}
+```
+
+**Features:**
+- Automatic display dimension detection from controller configuration
+- Automatic window sizing and positioning
+- Handles edge cases (last column/row uses remaining space)
+- Input validation (max 8 windows, minimum 8x8 pixels)
+- Support for custom display dimensions
+- Returns window array with 'id', 'x', 'y', 'width', 'height'
+
+**Parameters:**
+- `columns`: Number of columns (1-8)
+- `rows`: Number of rows (1-8)  
+- `dimensions`: Optional ['width' => int, 'height' => int] (auto-detected if not provided)
+
+**Limitations:**
+- Maximum total windows: 8 (columns × rows ≤ 8)
+- Minimum window size: 8×8 pixels
+- Common layouts: 2×2 (4 windows), 4×2 (8 windows), 3×2 (6 windows), 2×3 (6 windows)
+
 ### Clock Display
 
 ```php
@@ -241,7 +293,7 @@ $program = $controller->program()
 
 ```php
 $defaultConfig = [
-    'ip' => '192.168.10.61',
+    'ip' => '192.168.1.222',
     'port' => 5200,
     'cardId' => 1,
     'networkIdCode' => 0xFFFFFFFF,
@@ -257,7 +309,7 @@ $defaultConfig = [
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `ip` | string | `'192.168.10.61'` | Controller IP address |
+| `ip` | string | `'192.168.1.222'` | Controller IP address |
 | `port` | int | `5200` | Network port |
 | `cardId` | int | `1` | Controller card ID (1-255) |
 | `networkIdCode` | int | `0xFFFFFFFF` | Network identification code |
@@ -314,11 +366,11 @@ composer cs:fix
 
 Check the `examples/` directory for complete working examples:
 
-- `01_basic_usage.php` - Basic text display and effects
+- `01_basic_usage.php` - Basic text display, effects, and unified displayText() method
 - `02_multi_window_display.php` - Multi-window layouts
 - `03_table.php` - Table display with formatting
 - `04_clock_and_temperature.php` - Clock and temperature display
-- `displayText_unified.php` - Unified text display example
+- `05_table_layout_helper.php` - Table layout helper demonstration
 
 ## API Documentation
 
@@ -370,4 +422,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by [arturas88](https://github.com/arturas88)** 
+**Made with ❤️ by [arturas88](https://github.com/arturas88)**

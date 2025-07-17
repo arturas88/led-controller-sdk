@@ -81,21 +81,21 @@ class NetworkConfigBuilder
     /**
      * Set common home network settings (192.168.1.x)
      */
-    public function homeNetwork(string $ip = '192.168.1.100'): self
+    public function homeNetwork(string $ip = '192.168.1.222'): self
     {
         return $this->ip($ip)
-                   ->gateway('192.168.1.1')
-                   ->subnet('255.255.255.0');
+            ->gateway('192.168.1.1')
+            ->subnet('255.255.255.0');
     }
 
     /**
-     * Set common office network settings (192.168.10.x)
+     * Set common office network settings (192.168.1.x)
      */
-    public function officeNetwork(string $ip = '192.168.10.61'): self
+    public function officeNetwork(string $ip = '192.168.1.222'): self
     {
         return $this->ip($ip)
-                   ->gateway('192.168.10.1')
-                   ->subnet('255.255.255.0');
+            ->gateway('192.168.1.1')
+            ->subnet('255.255.255.0');
     }
 
     /**

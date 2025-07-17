@@ -53,7 +53,7 @@ class LEDController
      * Default configuration
      */
     private const DEFAULT_CONFIG = [
-        'ip' => '192.168.10.61',
+        'ip' => '192.168.1.222',
         'port' => 5200,
         'cardId' => 1,
         'networkIdCode' => 0xFFFFFFFF, // Updated to correct network ID as specified by user
@@ -62,6 +62,8 @@ class LEDController
         'communicationType' => 'network',
         'serialPort' => 'COM1',
         'baudRate' => 115200,
+        'displayWidth' => 128,
+        'displayHeight' => 32,
     ];
 
     public function __construct(array $config = [])

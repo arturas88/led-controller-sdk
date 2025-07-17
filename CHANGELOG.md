@@ -8,8 +8,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial release preparation
-- Package metadata for GitHub publishing
+- Table Layout Helper for easy multi-window grid creation
+- Automatic display dimension detection from controller configuration
+- Smart window sizing with edge case handling
+- Input validation for table layout parameters
+
+### Features
+- **Table Layout Helper**: New methods in ExternalCallsManager
+  - `getDisplayDimensions()`: Automatically detect display size from controller config
+  - `createTableLayout(columns, rows, [dimensions])`: Create window coordinates for table layout
+  - `applyTableLayout(columns, rows, [dimensions])`: Create and apply table layout in one step
+- **Smart Layout Features**:
+  - Automatic window sizing and positioning
+  - Handles edge cases (last column/row uses remaining space)
+  - Input validation (max 8 windows, minimum 8x8 pixels)
+  - Support for custom display dimensions
+  - Returns window array with 'id', 'x', 'y', 'width', 'height'
+
+### Documentation
+- Updated README with table layout helper examples
+- New example file: `examples/05_table_layout_helper.php`
+- Consolidated `displayText_unified.php` functionality into `01_basic_usage.php`
+- Comprehensive unit tests for table layout functionality
+
+### Development
+- Added unit tests for ExternalCallsManager table layout methods
+- Enhanced error handling for invalid table layout parameters
 
 ## [1.0.0] - 2025-07-15
 
@@ -81,5 +105,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions workflow for CI/CD
 - Automated documentation generation
 
-[Unreleased]: https://github.com/arturas88/led-controller-sdk/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/arturas88/led-controller-sdk/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/arturas88/led-controller-sdk/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/arturas88/led-controller-sdk/releases/tag/v1.0.0 
