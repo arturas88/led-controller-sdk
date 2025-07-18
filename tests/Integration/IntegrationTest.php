@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Basic integration test placeholder.
- * 
+ *
  * This file exists to prevent PHPUnit from failing when the Integration
  * directory is empty. Add actual integration tests here as needed.
  */
@@ -19,4 +19,4 @@ class IntegrationTest extends TestCase
     {
         $this->assertTrue(true, 'Integration test suite is properly configured');
     }
-} 
+}

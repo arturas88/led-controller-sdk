@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Basic feature test placeholder.
- * 
+ *
  * This file exists to prevent PHPUnit from failing when the Feature
  * directory is empty. Add actual feature tests here as needed.
  */
@@ -19,4 +19,4 @@ class FeatureTest extends TestCase
     {
         $this->assertTrue(true, 'Feature test suite is properly configured');
     }
-} 
+}
