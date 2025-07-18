@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Image mode enumeration
+ * Image mode enumeration.
  */
 enum ImageMode: int
 {
@@ -13,7 +15,7 @@ enum ImageMode: int
     case TILE = 3;
 
     /**
-     * Get image mode name
+     * Get image mode name.
      */
     public function getName(): string
     {
@@ -26,7 +28,7 @@ enum ImageMode: int
     }
 
     /**
-     * Get image mode description
+     * Get image mode description.
      */
     public function getDescription(): string
     {
@@ -39,7 +41,7 @@ enum ImageMode: int
     }
 
     /**
-     * Check if mode maintains aspect ratio
+     * Check if mode maintains aspect ratio.
      */
     public function maintainsAspectRatio(): bool
     {

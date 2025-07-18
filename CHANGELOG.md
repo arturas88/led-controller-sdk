@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-01-27
+
+### Changed
+- **Code Quality**: Applied comprehensive code formatting and style improvements across the entire codebase
+- **Code Consistency**: Standardized code style using PHP CS Fixer and CodeSniffer rules
+- **Documentation**: Updated code comments and documentation for better clarity
+
+### Development
+- Applied PHP CS Fixer formatting to all source files
+- Updated PHPStan configuration for enhanced static analysis
+- Improved code style consistency across all classes and methods
+- Enhanced test files with consistent formatting
+
 ## [1.1.1] - 2025-01-27
 
 ### Changed
@@ -118,7 +131,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions workflow for CI/CD
 - Automated documentation generation
 
-[Unreleased]: https://github.com/arturas88/led-controller-sdk/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/arturas88/led-controller-sdk/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/arturas88/led-controller-sdk/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/arturas88/led-controller-sdk/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/arturas88/led-controller-sdk/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/arturas88/led-controller-sdk/releases/tag/v1.0.0 

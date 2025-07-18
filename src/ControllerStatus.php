@@ -1,23 +1,41 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController;
 
 /**
- * Controller status class
+ * Controller status class.
  */
 class ControllerStatus
 {
+    /**
+     * @var array<string, mixed> Version information
+     */
     private array $versionInfo = [];
+
     private ?float $temperature = null;
+
     private ?int $humidity = null;
+
     private int $freeSpace = 0;
+
+    /**
+     * @var array<int, int> Brightness values
+     */
     private array $brightnessValues = [];
 
+    /**
+     * @param array<string, mixed> $info Version information
+     */
     public function setVersionInfo(array $info): void
     {
         $this->versionInfo = $info;
     }
 
+    /**
+     * @param array<string, mixed> $tempData Temperature data
+     */
     public function setTemperature(array $tempData): void
     {
         $this->temperature = $tempData['celsius'] ?? null;
@@ -29,6 +47,9 @@ class ControllerStatus
         $this->freeSpace = $bytes;
     }
 
+    /**
+     * @param array<int, int> $values Brightness values
+     */
     public function setBrightnessValues(array $values): void
     {
         $this->brightnessValues = $values;
@@ -79,11 +100,17 @@ class ControllerStatus
         return round($this->freeSpace / 1024 / 1024, 2);
     }
 
+    /**
+     * @return array<int, int> Brightness values
+     */
     public function getBrightnessValues(): array
     {
         return $this->brightnessValues;
     }
 
+    /**
+     * @return array<string, mixed> Controller status as array
+     */
     public function toArray(): array
     {
         return [

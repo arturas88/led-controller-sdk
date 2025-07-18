@@ -1,22 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Manager;
 
 use LEDController\Enum\Protocol;
 use LEDController\Exception\ConfigException;
 
 /**
- * Configuration manager for LED controller settings
+ * Configuration manager for LED controller settings.
  */
 class ConfigManager
 {
-    private array $config = [];
-    private array $defaults = [];
-    private string $configFile = '';
-
-    /**
-     * Default configuration values
-     */
+    /** Default configuration values */
     private const DEFAULT_CONFIG = [
         'network' => [
             'ip' => '192.168.1.222',
@@ -73,6 +69,18 @@ class ConfigManager
         ],
     ];
 
+    /**
+     * @var array<string, mixed> Configuration array
+     */
+    private array $config = [];
+
+    /**
+     * @var array<string, mixed> Default configuration values
+     */
+    private array $defaults = [];
+
+    private string $configFile = '';
+
     public function __construct(?string $configFile = null)
     {
         $this->configFile = $configFile ?? $this->getDefaultConfigPath();
@@ -82,15 +90,7 @@ class ConfigManager
     }
 
     /**
-     * Get default configuration file path
-     */
-    private function getDefaultConfigPath(): string
-    {
-        return dirname(__DIR__, 2) . '/config/ledcontroller.json';
-    }
-
-    /**
-     * Load configuration from file
+     * Load configuration from file.
      */
     public function loadConfiguration(): void
     {
@@ -98,7 +98,7 @@ class ConfigManager
             $configData = json_decode(file_get_contents($this->configFile), true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new ConfigException("Invalid JSON in configuration file: " . json_last_error_msg());
+                throw new ConfigException('Invalid JSON in configuration file: ' . json_last_error_msg());
             }
 
             $this->config = array_merge($this->defaults, $configData);
@@ -108,14 +108,14 @@ class ConfigManager
     }
 
     /**
-     * Save configuration to file
+     * Save configuration to file.
      */
     public function saveConfiguration(): void
     {
-        $configDir = dirname($this->configFile);
+        $configDir = \dirname($this->configFile);
         if (!is_dir($configDir)) {
-            if (!mkdir($configDir, 0755, true)) {
-                throw new ConfigException("Failed to create configuration directory: $configDir");
+            if (!mkdir($configDir, 0o755, true)) {
+                throw new ConfigException("Failed to create configuration directory: {$configDir}");
             }
         }
 
@@ -127,7 +127,12 @@ class ConfigManager
     }
 
     /**
-     * Get configuration value
+     * Get configuration value.
+     *
+     * @param string $key Configuration key (supports dot notation)
+     * @param mixed|null $default Default value if key not found
+     *
+     * @return mixed Configuration value
      */
     public function get(string $key, $default = null)
     {
@@ -135,7 +140,10 @@ class ConfigManager
     }
 
     /**
-     * Set configuration value
+     * Set configuration value.
+     *
+     * @param string $key Configuration key (supports dot notation)
+     * @param mixed $value Value to set
      */
     public function set(string $key, $value): void
     {
@@ -143,7 +151,9 @@ class ConfigManager
     }
 
     /**
-     * Get all configuration
+     * Get all configuration.
+     *
+     * @return array<string, mixed> Complete configuration array
      */
     public function getAll(): array
     {
@@ -151,7 +161,7 @@ class ConfigManager
     }
 
     /**
-     * Reset to defaults
+     * Reset to defaults.
      */
     public function reset(): void
     {
@@ -159,7 +169,9 @@ class ConfigManager
     }
 
     /**
-     * Get network configuration
+     * Get network configuration.
+     *
+     * @return array<string, mixed> Network configuration array
      */
     public function getNetworkConfig(): array
     {
@@ -167,7 +179,9 @@ class ConfigManager
     }
 
     /**
-     * Get serial configuration
+     * Get serial configuration.
+     *
+     * @return array<string, mixed> Serial configuration array
      */
     public function getSerialConfig(): array
     {
@@ -175,7 +189,9 @@ class ConfigManager
     }
 
     /**
-     * Get controller configuration
+     * Get controller configuration.
+     *
+     * @return array<string, mixed> Controller configuration array
      */
     public function getControllerConfig(): array
     {
@@ -183,7 +199,9 @@ class ConfigManager
     }
 
     /**
-     * Get display configuration
+     * Get display configuration.
+     *
+     * @return array<string, mixed> Display configuration array
      */
     public function getDisplayConfig(): array
     {
@@ -191,7 +209,9 @@ class ConfigManager
     }
 
     /**
-     * Get communication configuration
+     * Get communication configuration.
+     *
+     * @return array<string, mixed> Communication configuration array
      */
     public function getCommunicationConfig(): array
     {
@@ -199,14 +219,28 @@ class ConfigManager
     }
 
     /**
-     * Get nested value from array
+     * Get default configuration file path.
+     */
+    private function getDefaultConfigPath(): string
+    {
+        return \dirname(__DIR__, 2) . '/config/ledcontroller.json';
+    }
+
+    /**
+     * Get nested value from array.
+     *
+     * @param array<string, mixed> $array Array to search in
+     * @param string $key Key to search for (supports dot notation)
+     * @param mixed|null $default Default value if key not found
+     *
+     * @return mixed Found value or default
      */
     private function getNestedValue(array $array, string $key, $default = null)
     {
         $keys = explode('.', $key);
 
         foreach ($keys as $k) {
-            if (is_array($array) && isset($array[$k])) {
+            if (\is_array($array) && isset($array[$k])) {
                 $array = $array[$k];
             } else {
                 return $default;
@@ -217,7 +251,11 @@ class ConfigManager
     }
 
     /**
-     * Set nested value in array
+     * Set nested value in array.
+     *
+     * @param array<string, mixed> $array Array to modify
+     * @param string $key Key to set (supports dot notation)
+     * @param mixed $value Value to set
      */
     private function setNestedValue(array &$array, string $key, $value): void
     {
@@ -225,7 +263,7 @@ class ConfigManager
         $current = &$array;
 
         foreach ($keys as $k) {
-            if (!is_array($current)) {
+            if (!\is_array($current)) {
                 $current = [];
             }
 

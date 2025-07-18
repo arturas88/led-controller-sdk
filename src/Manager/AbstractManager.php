@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Manager;
 
-use LEDController\LEDController;
-use LEDController\Interface\ManagerInterface;
 use LEDController\Exception\ConfigException;
+use LEDController\Interface\ManagerInterface;
+use LEDController\LEDController;
 
 /**
- * Abstract base class for all managers
+ * Abstract base class for all managers.
  */
 abstract class AbstractManager implements ManagerInterface
 {
     protected LEDController $controller;
+
     protected bool $initialized = false;
 
     public function __construct(LEDController $controller)
@@ -20,7 +23,7 @@ abstract class AbstractManager implements ManagerInterface
     }
 
     /**
-     * Initialize the manager
+     * Initialize the manager.
      */
     public function initialize(): void
     {
@@ -29,7 +32,7 @@ abstract class AbstractManager implements ManagerInterface
     }
 
     /**
-     * Get the controller instance
+     * Get the controller instance.
      */
     public function getController(): LEDController
     {
@@ -37,7 +40,7 @@ abstract class AbstractManager implements ManagerInterface
     }
 
     /**
-     * Check if manager is ready for operations
+     * Check if manager is ready for operations.
      */
     public function isReady(): bool
     {
@@ -45,7 +48,7 @@ abstract class AbstractManager implements ManagerInterface
     }
 
     /**
-     * Clean up resources
+     * Clean up resources.
      */
     public function cleanup(): void
     {
@@ -54,17 +57,17 @@ abstract class AbstractManager implements ManagerInterface
     }
 
     /**
-     * Check if manager is ready and throw exception if not
+     * Check if manager is ready and throw exception if not.
      */
     protected function ensureReady(): void
     {
         if (!$this->isReady()) {
-            throw new ConfigException(get_class($this) . " is not ready for operations");
+            throw new ConfigException(static::class . ' is not ready for operations');
         }
     }
 
     /**
-     * Get card ID from controller config
+     * Get card ID from controller config.
      */
     protected function getCardId(): int
     {
@@ -72,7 +75,7 @@ abstract class AbstractManager implements ManagerInterface
     }
 
     /**
-     * Override this method to perform manager-specific initialization
+     * Override this method to perform manager-specific initialization.
      */
     protected function doInitialize(): void
     {
@@ -80,7 +83,7 @@ abstract class AbstractManager implements ManagerInterface
     }
 
     /**
-     * Override this method to perform manager-specific cleanup
+     * Override this method to perform manager-specific cleanup.
      */
     protected function doCleanup(): void
     {

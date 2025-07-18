@@ -1,14 +1,14 @@
 {
     "name": "arturas88/led-controller-sdk",
     "description": "PHP SDK for LED Controller communication and management",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "type": "library",
     "license": "MIT",
     "keywords": ["led", "controller", "sdk", "display", "communication", "c-power5200", "serial", "network"],
     "homepage": "https://github.com/arturas88/led-controller-sdk",
     "authors": [
         {
-            "name": "arturas88",
+            "name": "Artūras Šeršniovas",
             "email": "arturaz@gmail.com"
         }
     ],
@@ -47,17 +47,20 @@
     "scripts": {
         "test": "phpunit",
         "test:coverage": "phpunit --coverage-clover=coverage/clover.xml --coverage-html=coverage/html",
-        "phpstan": "phpstan analyse src --level=4 --memory-limit=512M",
+        "phpstan": "phpstan analyse src --level=6 --memory-limit=512M",
         "cs:check": "phpcs src tests",
-        "cs:fix": "phpcbf src tests",
-        "cs:fix-modern": "php-cs-fixer fix --config=.php-cs-fixer.php",
+        "cs:fix": "php-cs-fixer fix --config=.php-cs-fixer.php",
+        "cs:fix-legacy": "phpcbf src tests",
+        "cs:fix-all": [
+            "@cs:fix",
+            "@cs:fix-legacy"
+        ],
         "quality": [
             "@cs:check",
             "@phpstan"
         ],
         "quality:fix": [
-            "@cs:fix",
-            "@cs:fix-modern"
+            "@cs:fix-all"
         ],
         "ci": [
             "@test",

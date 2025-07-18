@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Horizontal alignment enumeration
+ * Horizontal alignment enumeration.
  */
 enum Alignment: int
 {
@@ -12,7 +14,7 @@ enum Alignment: int
     case RIGHT = 2;
 
     /**
-     * Get alignment name
+     * Get alignment name.
      */
     public function getName(): string
     {
@@ -24,7 +26,7 @@ enum Alignment: int
     }
 
     /**
-     * Get CSS equivalent
+     * Get CSS equivalent.
      */
     public function getCssValue(): string
     {

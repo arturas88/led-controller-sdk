@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Effect enumeration for display effects
+ * Effect enumeration for display effects.
  */
 enum Effect: int
 {
@@ -77,7 +79,7 @@ enum Effect: int
     case RANDOM = 32768;
 
     /**
-     * Get effect name
+     * Get effect name.
      */
     public function getName(): string
     {
@@ -154,7 +156,7 @@ enum Effect: int
     }
 
     /**
-     * Get effect category
+     * Get effect category.
      */
     public function getCategory(): string
     {
@@ -187,7 +189,7 @@ enum Effect: int
     }
 
     /**
-     * Check if effect is continuous
+     * Check if effect is continuous.
      */
     public function isContinuous(): bool
     {
@@ -199,7 +201,9 @@ enum Effect: int
     }
 
     /**
-     * Get basic effects
+     * Get basic effects.
+     *
+     * @return array<int, self> Array of basic effects
      */
     public static function getBasicEffects(): array
     {
@@ -216,7 +220,11 @@ enum Effect: int
     }
 
     /**
-     * Get all effects by category
+     * Get all effects by category.
+     *
+     * @param string $category The category to filter by
+     *
+     * @return array<int, self> Array of effects in the specified category
      */
     public static function getEffectsByCategory(string $category): array
     {
@@ -226,11 +234,14 @@ enum Effect: int
                 $effects[] = $effect;
             }
         }
+
         return $effects;
     }
 
     /**
-     * Get all effects (for backward compatibility)
+     * Get all effects (for backward compatibility).
+     *
+     * @return array<int, string> Array mapping effect values to effect names
      */
     public static function getAllEffects(): array
     {
@@ -238,6 +249,7 @@ enum Effect: int
         foreach (self::cases() as $effect) {
             $effects[$effect->value] = $effect->getName();
         }
+
         return $effects;
     }
 }

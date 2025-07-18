@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Command enumeration for protocol commands
+ * Command enumeration for protocol commands.
  */
 enum Command: int
 {
@@ -43,7 +45,7 @@ enum Command: int
     case TEMPLATE_PROPERTY = 0x8A;
 
     /**
-     * Get command name
+     * Get command name.
      */
     public function getName(): string
     {
@@ -79,7 +81,7 @@ enum Command: int
     }
 
     /**
-     * Get command category
+     * Get command category.
      */
     public function getCategory(): string
     {
@@ -99,7 +101,7 @@ enum Command: int
     }
 
     /**
-     * Check if command requires data
+     * Check if command requires data.
      */
     public function requiresData(): bool
     {
@@ -113,7 +115,7 @@ enum Command: int
     }
 
     /**
-     * Check if command returns data
+     * Check if command returns data.
      */
     public function returnsData(): bool
     {
@@ -125,7 +127,9 @@ enum Command: int
     }
 
     /**
-     * Get all file-related commands
+     * Get all file-related commands.
+     *
+     * @return array<int, Command> Array of file-related commands
      */
     public static function getFileCommands(): array
     {
@@ -142,7 +146,9 @@ enum Command: int
     }
 
     /**
-     * Get all template commands
+     * Get all template commands.
+     *
+     * @return array<int, Command> Array of template commands
      */
     public static function getTemplateCommands(): array
     {

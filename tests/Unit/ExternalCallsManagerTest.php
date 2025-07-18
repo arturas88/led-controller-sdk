@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
-use LEDController\Manager\ExternalCallsManager;
-use LEDController\LEDController;
 use LEDController\Exception\ExternalCallsException;
+use LEDController\LEDController;
+use LEDController\Manager\ExternalCallsManager;
 use LEDController\Response;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 class ExternalCallsManagerTest extends TestCase
 {
     private ExternalCallsManager $manager;
+
     /** @var LEDController&MockObject */
     private $controller;
 
@@ -25,8 +28,8 @@ class ExternalCallsManagerTest extends TestCase
             'displayHeight' => 32,
             'display' => [
                 'defaultWidth' => 128,
-                'defaultHeight' => 32
-            ]
+                'defaultHeight' => 32,
+            ],
         ]);
 
         $this->manager = new ExternalCallsManager($this->controller);
@@ -36,8 +39,8 @@ class ExternalCallsManagerTest extends TestCase
     {
         $dimensions = $this->manager->getDisplayDimensions();
 
-        $this->assertEquals(128, $dimensions['width']);
-        $this->assertEquals(32, $dimensions['height']);
+        self::assertSame(128, $dimensions['width']);
+        self::assertSame(32, $dimensions['height']);
     }
 
     public function testGetDisplayDimensionsFallback()
@@ -50,58 +53,58 @@ class ExternalCallsManagerTest extends TestCase
         $manager = new ExternalCallsManager($controller);
         $dimensions = $manager->getDisplayDimensions();
 
-        $this->assertEquals(128, $dimensions['width']);
-        $this->assertEquals(32, $dimensions['height']);
+        self::assertSame(128, $dimensions['width']);
+        self::assertSame(32, $dimensions['height']);
     }
 
     public function testCreateTableLayout2x2()
     {
         $windows = $this->manager->createTableLayout(2, 2);
 
-        $this->assertCount(4, $windows);
+        self::assertCount(4, $windows);
 
         // Check first window (top-left)
-        $this->assertEquals(0, $windows[0]['id']);
-        $this->assertEquals(0, $windows[0]['x']);
-        $this->assertEquals(0, $windows[0]['y']);
-        $this->assertEquals(64, $windows[0]['width']);
-        $this->assertEquals(16, $windows[0]['height']);
+        self::assertSame(0, $windows[0]['id']);
+        self::assertSame(0, $windows[0]['x']);
+        self::assertSame(0, $windows[0]['y']);
+        self::assertSame(64, $windows[0]['width']);
+        self::assertSame(16, $windows[0]['height']);
 
         // Check second window (top-right)
-        $this->assertEquals(1, $windows[1]['id']);
-        $this->assertEquals(64, $windows[1]['x']);
-        $this->assertEquals(0, $windows[1]['y']);
-        $this->assertEquals(64, $windows[1]['width']); // Last column uses remaining space
-        $this->assertEquals(16, $windows[1]['height']);
+        self::assertSame(1, $windows[1]['id']);
+        self::assertSame(64, $windows[1]['x']);
+        self::assertSame(0, $windows[1]['y']);
+        self::assertSame(64, $windows[1]['width']); // Last column uses remaining space
+        self::assertSame(16, $windows[1]['height']);
 
         // Check third window (bottom-left)
-        $this->assertEquals(2, $windows[2]['id']);
-        $this->assertEquals(0, $windows[2]['x']);
-        $this->assertEquals(16, $windows[2]['y']);
-        $this->assertEquals(64, $windows[2]['width']);
-        $this->assertEquals(16, $windows[2]['height']); // Last row uses remaining space
+        self::assertSame(2, $windows[2]['id']);
+        self::assertSame(0, $windows[2]['x']);
+        self::assertSame(16, $windows[2]['y']);
+        self::assertSame(64, $windows[2]['width']);
+        self::assertSame(16, $windows[2]['height']); // Last row uses remaining space
 
         // Check fourth window (bottom-right)
-        $this->assertEquals(3, $windows[3]['id']);
-        $this->assertEquals(64, $windows[3]['x']);
-        $this->assertEquals(16, $windows[3]['y']);
-        $this->assertEquals(64, $windows[3]['width']);
-        $this->assertEquals(16, $windows[3]['height']);
+        self::assertSame(3, $windows[3]['id']);
+        self::assertSame(64, $windows[3]['x']);
+        self::assertSame(16, $windows[3]['y']);
+        self::assertSame(64, $windows[3]['width']);
+        self::assertSame(16, $windows[3]['height']);
     }
 
     public function testCreateTableLayout4x2()
     {
         $windows = $this->manager->createTableLayout(4, 2);
 
-        $this->assertCount(8, $windows);
+        self::assertCount(8, $windows);
 
         // Check window dimensions
-        $this->assertEquals(32, $windows[0]['width']); // 128 / 4 = 32
-        $this->assertEquals(16, $windows[0]['height']); // 32 / 2 = 16
+        self::assertSame(32, $windows[0]['width']); // 128 / 4 = 32
+        self::assertSame(16, $windows[0]['height']); // 32 / 2 = 16
 
         // Check last column uses remaining space
-        $this->assertEquals(96, $windows[3]['x']); // 3 * 32 = 96
-        $this->assertEquals(32, $windows[3]['width']); // 128 - 96 = 32
+        self::assertSame(96, $windows[3]['x']); // 3 * 32 = 96
+        self::assertSame(32, $windows[3]['width']); // 128 - 96 = 32
     }
 
     public function testCreateTableLayoutWithCustomDimensions()
@@ -109,11 +112,11 @@ class ExternalCallsManagerTest extends TestCase
         $customDimensions = ['width' => 192, 'height' => 64];
         $windows = $this->manager->createTableLayout(2, 2, $customDimensions); // Changed to 2x2 to stay under 8 windows
 
-        $this->assertCount(4, $windows);
+        self::assertCount(4, $windows);
 
         // Check window dimensions
-        $this->assertEquals(96, $windows[0]['width']); // 192 / 2 = 96
-        $this->assertEquals(32, $windows[0]['height']); // 64 / 2 = 32
+        self::assertSame(96, $windows[0]['width']); // 192 / 2 = 96
+        self::assertSame(32, $windows[0]['height']); // 64 / 2 = 32
     }
 
     public function testCreateTableLayoutInvalidColumns()
@@ -155,14 +158,14 @@ class ExternalCallsManagerTest extends TestCase
         $mockResponse = $this->createMock(Response::class);
         $mockResponse->method('isSuccess')->willReturn(true);
 
-        $this->controller->expects($this->once())
+        $this->controller->expects(self::once())
             ->method('sendPacket')
             ->willReturn($mockResponse);
 
         $windows = $this->manager->applyTableLayout(2, 2);
 
-        $this->assertCount(4, $windows);
-        $this->assertTrue($this->manager->getState()['splitScreenMode']);
+        self::assertCount(4, $windows);
+        self::assertTrue($this->manager->getState()['splitScreenMode']);
     }
 
     public function testValidateWindow()
@@ -171,7 +174,7 @@ class ExternalCallsManagerTest extends TestCase
             'x' => 0,
             'y' => 0,
             'width' => 64,
-            'height' => 32
+            'height' => 32,
         ];
 
         // Mock the sendPacket method
@@ -183,8 +186,8 @@ class ExternalCallsManagerTest extends TestCase
         $result = $this->manager->splitScreen([$validWindow]);
 
         // Add assertions to make the test not risky
-        $this->assertTrue($this->manager->getState()['splitScreenMode']);
-        $this->assertInstanceOf(ExternalCallsManager::class, $result);
+        self::assertTrue($this->manager->getState()['splitScreenMode']);
+        self::assertInstanceOf(ExternalCallsManager::class, $result);
     }
 
     public function testValidateWindowMissingProperties()
@@ -194,7 +197,7 @@ class ExternalCallsManagerTest extends TestCase
 
         $invalidWindow = [
             'x' => 0,
-            'y' => 0
+            'y' => 0,
             // Missing width and height
         ];
 

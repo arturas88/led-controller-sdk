@@ -1,34 +1,42 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Builder;
 
-use LEDController\Enum\Command;
-use LEDController\Enum\FontSize;
-use LEDController\Enum\Effect;
-use LEDController\Enum\Color;
 use LEDController\Enum\Alignment;
-use LEDController\Enum\WindowType;
+use LEDController\Enum\Color;
+use LEDController\Enum\Command;
+use LEDController\Enum\Effect;
+use LEDController\Enum\FontSize;
 use LEDController\Enum\ImageMode;
+use LEDController\Enum\WindowType;
 
 /**
- * Packet builder with modern enum support
+ * Packet builder with modern enum support.
  */
 class PacketBuilder
 {
     private readonly int $controllerId;
+
+    /**
+     * @var array<int, array<string, mixed>> List of built packets
+     */
     private array $packets = [];
 
     public function __construct(int $controllerId = 1)
     {
         if ($controllerId < 1 || $controllerId > 255) {
-            throw new \InvalidArgumentException("Controller ID must be between 1 and 255, got: $controllerId");
+            throw new \InvalidArgumentException("Controller ID must be between 1 and 255, got: {$controllerId}");
         }
 
         $this->controllerId = $controllerId;
     }
 
     /**
-     * Create basic protocol packet
+     * Create basic protocol packet.
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createBasicPacket(Command|int $command, string $data = ''): array
     {
@@ -38,16 +46,16 @@ class PacketBuilder
             'start' => pack('C', 0x55),
             'id' => pack('C', $this->controllerId),
             'command' => pack('C', $cmdCode),
-            'length' => pack('v', strlen($data)),
-            'data' => $data
+            'length' => pack('v', \strlen($data)),
+            'data' => $data,
         ];
 
         // Calculate checksum
         $checksum = 0;
         foreach ($packet as $key => $value) {
             if ($key !== 'start') {
-                for ($i = 0; $i < strlen($value); $i++) {
-                    $checksum += ord($value[$i]);
+                for ($i = 0; $i < \strlen($value); $i++) {
+                    $checksum += \ord($value[$i]);
                 }
             }
         }
@@ -57,7 +65,9 @@ class PacketBuilder
     }
 
     /**
-     * Create external calls packet
+     * Create external calls packet.
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createExternalCallsPacket(int $subCommand, string $data = ''): array
     {
@@ -65,7 +75,11 @@ class PacketBuilder
     }
 
     /**
-     * Create text display packet (modern enum support)
+     * Create text display packet (modern enum support).
+     *
+     * @param array<string, int>|Color|int|string $color Color or color array
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createTextDisplayPacket(
         int $x,
@@ -74,8 +88,8 @@ class PacketBuilder
         int $height,
         string $text,
         FontSize|int $fontSize = FontSize::FONT_16,
-        Color|string|array|int $color = Color::WHITE,
-        Alignment|int $alignment = Alignment::LEFT
+        array|Color|int|string $color = Color::WHITE,
+        Alignment|int $alignment = Alignment::LEFT,
     ): array {
         $fontCode = ($fontSize instanceof FontSize) ? $fontSize->value : $fontSize;
         $colorRgb = Color::convert($color);
@@ -96,24 +110,26 @@ class PacketBuilder
             0,
             0,
             0,
-            0 // Reserved bytes
+            0, // Reserved bytes
         ) . $text;
 
         return $this->createExternalCallsPacket(0x02, $data);
     }
 
     /**
-     * Create window packet (modern enum support)
+     * Create window packet (modern enum support).
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createWindowPacket(
         int $x,
         int $y,
         int $width,
         int $height,
-        WindowType|int $windowType = WindowType::TEXT,
+        int|WindowType $windowType = WindowType::TEXT,
         Effect|int $effect = Effect::DRAW,
         int $speed = 5,
-        int $stayTime = 10
+        int $stayTime = 10,
     ): array {
         $windowCode = ($windowType instanceof WindowType) ? $windowType->value : $windowType;
         $effectCode = ($effect instanceof Effect) ? $effect->value : $effect;
@@ -127,14 +143,16 @@ class PacketBuilder
             $windowCode,
             $effectCode,
             $speed,
-            $stayTime
+            $stayTime,
         );
 
         return $this->createExternalCallsPacket(0x01, $data);
     }
 
     /**
-     * Create image display packet (modern enum support)
+     * Create image display packet (modern enum support).
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createImageDisplayPacket(
         int $x,
@@ -142,7 +160,7 @@ class PacketBuilder
         int $width,
         int $height,
         string $imageData,
-        ImageMode|int $imageMode = ImageMode::CENTER
+        ImageMode|int $imageMode = ImageMode::CENTER,
     ): array {
         $modeCode = ($imageMode instanceof ImageMode) ? $imageMode->value : $imageMode;
 
@@ -152,7 +170,11 @@ class PacketBuilder
     }
 
     /**
-     * Create clock display packet (modern enum support)
+     * Create clock display packet (modern enum support).
+     *
+     * @param array<string, int>|Color|int|string $color Color or color array
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createClockDisplayPacket(
         int $x,
@@ -160,8 +182,8 @@ class PacketBuilder
         int $width,
         int $height,
         FontSize|int $fontSize = FontSize::FONT_16,
-        Color|string|array|int $color = Color::WHITE,
-        int $format = 0x3F // Show all date/time components
+        array|Color|int|string $color = Color::WHITE,
+        int $format = 0x3F, // Show all date/time components
     ): array {
         $fontCode = ($fontSize instanceof FontSize) ? $fontSize->value : $fontSize;
         $colorRgb = Color::convert($color);
@@ -180,14 +202,16 @@ class PacketBuilder
             0,
             0,
             0,
-            0 // Reserved bytes
+            0, // Reserved bytes
         );
 
         return $this->createExternalCallsPacket(0x05, $data);
     }
 
     /**
-     * Create save data packet
+     * Create save data packet.
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createSaveDataPacket(): array
     {
@@ -195,7 +219,9 @@ class PacketBuilder
     }
 
     /**
-     * Create exit split screen packet
+     * Create exit split screen packet.
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createExitSplitScreenPacket(): array
     {
@@ -203,12 +229,14 @@ class PacketBuilder
     }
 
     /**
-     * Create brightness control packet
+     * Create brightness control packet.
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createBrightnessPacket(int $brightness): array
     {
         if ($brightness < 0 || $brightness > 100) {
-            throw new \InvalidArgumentException("Brightness must be between 0 and 100, got: $brightness");
+            throw new \InvalidArgumentException("Brightness must be between 0 and 100, got: {$brightness}");
         }
 
         // Convert to 0-255 scale
@@ -219,11 +247,13 @@ class PacketBuilder
     }
 
     /**
-     * Create time set packet
+     * Create time set packet.
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createTimeSetPacket(?\DateTime $dateTime = null): array
     {
-        $dateTime = $dateTime ?? new \DateTime();
+        $dateTime ??= new \DateTime();
 
         $data = pack(
             'CCCCCCCC',
@@ -234,30 +264,35 @@ class PacketBuilder
             $dateTime->format('i'),  // Minute
             $dateTime->format('s'),  // Second
             $dateTime->format('w'),  // Day of week (0=Sunday)
-            0 // Reserved
+            0, // Reserved
         );
 
         return $this->createBasicPacket(Command::TIME_QUERY_SET, $data);
     }
 
     /**
-     * Create power control packet
+     * Create power control packet.
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createPowerControlPacket(bool $powerOn): array
     {
         $data = pack('C', $powerOn ? 1 : 0);
+
         return $this->createBasicPacket(Command::POWER_CONTROL, $data);
     }
 
     /**
-     * Create query packet
+     * Create query packet.
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createQueryPacket(Command|int $queryCommand): array
     {
         $cmdCode = ($queryCommand instanceof Command) ? $queryCommand->value : $queryCommand;
 
         if (
-            !in_array(
+            !\in_array(
                 $cmdCode,
                 [
                     Command::QUERY_VERSION->value,
@@ -265,27 +300,33 @@ class PacketBuilder
                     Command::QUERY_TEMPERATURE->value,
                     Command::QUERY_DISK_SPACE->value,
                     Command::TIME_QUERY_SET->value,
-                    Command::BRIGHTNESS_QUERY_SET->value
-                ]
+                    Command::BRIGHTNESS_QUERY_SET->value,
+                ],
+                true,
             )
         ) {
-            throw new \InvalidArgumentException("Command is not a query command");
+            throw new \InvalidArgumentException('Command is not a query command');
         }
 
         return $this->createBasicPacket($cmdCode);
     }
 
     /**
-     * Create restart packet
+     * Create restart packet.
+     *
+     * @return array<string, mixed> Packet structure
      */
     public function createRestartPacket(bool $hardwareRestart = false): array
     {
         $command = $hardwareRestart ? Command::RESTART_HARDWARE : Command::RESTART_APP;
+
         return $this->createBasicPacket($command);
     }
 
     /**
-     * Get all packets
+     * Get all built packets.
+     *
+     * @return array<int, array<string, mixed>> List of built packets
      */
     public function getPackets(): array
     {
@@ -293,7 +334,11 @@ class PacketBuilder
     }
 
     /**
-     * Add packet to collection
+     * Add a packet to the list.
+     *
+     * @param array<string, mixed> $packet Packet structure
+     *
+     * @return $this
      */
     public function addPacket(array $packet): self
     {
@@ -302,16 +347,17 @@ class PacketBuilder
     }
 
     /**
-     * Clear all packets
+     * Clear all packets.
      */
     public function clearPackets(): self
     {
         $this->packets = [];
+
         return $this;
     }
 
     /**
-     * Get controller ID
+     * Get controller ID.
      */
     public function getControllerId(): int
     {
@@ -319,7 +365,9 @@ class PacketBuilder
     }
 
     /**
-     * Convert packet to binary string
+     * Convert packet to binary string.
+     *
+     * @param array<string, mixed> $packet Packet structure
      */
     public function packetToBinary(array $packet): string
     {
@@ -327,11 +375,14 @@ class PacketBuilder
         foreach ($packet as $segment) {
             $binary .= $segment;
         }
+
         return $binary;
     }
 
     /**
-     * Convert all packets to binary
+     * Convert all packets to binary.
+     *
+     * @return array<int, string> List of binary packet strings
      */
     public function allPacketsToBinary(): array
     {
@@ -339,6 +390,7 @@ class PacketBuilder
         foreach ($this->packets as $packet) {
             $binaries[] = $this->packetToBinary($packet);
         }
+
         return $binaries;
     }
 }

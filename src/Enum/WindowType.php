@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Window type enumeration
+ * Window type enumeration.
  */
 enum WindowType: int
 {
@@ -14,7 +16,7 @@ enum WindowType: int
     case PICTURE = 4;
 
     /**
-     * Get window type name
+     * Get window type name.
      */
     public function getName(): string
     {
@@ -28,7 +30,7 @@ enum WindowType: int
     }
 
     /**
-     * Get window type description
+     * Get window type description.
      */
     public function getDescription(): string
     {
@@ -42,7 +44,7 @@ enum WindowType: int
     }
 
     /**
-     * Check if window type supports text content
+     * Check if window type supports text content.
      */
     public function supportsText(): bool
     {
@@ -53,7 +55,7 @@ enum WindowType: int
     }
 
     /**
-     * Check if window type supports image content
+     * Check if window type supports image content.
      */
     public function supportsImage(): bool
     {

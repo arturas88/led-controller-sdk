@@ -1,7 +1,9 @@
 <?php
+
+declare(strict_types=1);
 /**
- * Working Multi-Window Display Example - LEDController LED Controller SDK
- * 
+ * Working Multi-Window Display Example - LEDController LED Controller SDK.
+ *
  * This example demonstrates:
  * - Functional split screen with proper window sizing
  * - Multiple windows with readable text
@@ -11,14 +13,12 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use LEDController\LEDController;
-use LEDController\Enum\FontSize;
-use LEDController\Enum\Effect;
 use LEDController\Enum\Alignment;
 use LEDController\Enum\Color;
-use LEDController\PacketBuilder;
-use LEDController\Enum\Protocol;
+use LEDController\Enum\Effect;
+use LEDController\Enum\FontSize;
 use LEDController\Enum\VerticalAlignment;
+use LEDController\LEDController;
 
 echo "=== LEDController LED Controller - Working Multi-Window Display Example ===\n\n";
 
@@ -34,7 +34,7 @@ $config = [
 
 try {
     echo "1. Connecting to LED controller...\n";
-    
+
     $controller = new LEDController([
         'ip' => $config['ip'],
         'port' => $config['port'],
@@ -43,18 +43,18 @@ try {
         'retries' => $config['retries'],
         'networkIdCode' => $config['networkIdCode'],
     ]);
-    
+
     $controller->connect();
     // sleep(1);
 
     $controller->clearDisplay();
     // sleep(1);
-    
+
     echo "   ✓ Connected to {$config['ip']}:{$config['port']}\n";
     echo "   ✓ Display reset completed\n";
-    
+
     echo "2. Setting up full-height multi-window layout...\n";
-    
+
     // Full-height layout for 128x64 display (uses entire display)
     $windows = [
         // ROW 1
@@ -161,9 +161,9 @@ try {
             'height' => 16,
         ],
     ];
-    
+
     // Create split screen using external calls manager
-    $windowCoords = array_map(function($window) {
+    $windowCoords = array_map(static function ($window) {
         return [
             'x' => $window['x'] * 2,
             'y' => $window['y'],
@@ -173,11 +173,11 @@ try {
     }, $windows);
 
     $controller->external()->splitScreen($windowCoords);
-    
+
     echo "3. Displaying initial content in each window...\n";
 
     // Display content in all windows
-    foreach ($windows as $window) {        
+    foreach ($windows as $window) {
         $controller->external()->displayText($window['id'], $window['name'], [
             'font' => FontSize::FONT_8,
             'color' => $window['color'],
@@ -193,13 +193,12 @@ try {
     usleep(0.5 * 1000000);
     $controller->clearDisplay();
     $controller->disconnect();
-
 } catch (Exception $e) {
     echo "\n❌ Error: " . $e->getMessage() . "\n";
-    echo "File: " . $e->getFile() . "\n";
-    echo "Line: " . $e->getLine() . "\n";
+    echo 'File: ' . $e->getFile() . "\n";
+    echo 'Line: ' . $e->getLine() . "\n";
     echo "Stack trace:\n" . $e->getTraceAsString() . "\n\n";
-    
+
     echo "Troubleshooting tips:\n";
     echo "• Ensure your controller supports multi-window/split screen functionality\n";
     echo "• Check that external calls protocol is enabled on your controller\n";
@@ -207,7 +206,7 @@ try {
     echo "• Make sure font sizes are smaller than window heights\n";
     echo "• Try using only FONT_8 for small windows\n";
     echo "• Check network connectivity and controller response times\n\n";
-    
+
     // Try to cleanup
     if (isset($controller)) {
         try {
@@ -215,9 +214,9 @@ try {
             $controller->clearDisplay();
             $controller->disconnect();
         } catch (Exception $cleanupError) {
-            echo "Note: Cleanup error (can be ignored): " . $cleanupError->getMessage() . "\n";
+            echo 'Note: Cleanup error (can be ignored): ' . $cleanupError->getMessage() . "\n";
         }
     }
-    
+
     exit(1);
 }

@@ -1,26 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Manager;
 
-use LEDController\LEDController;
-use LEDController\Enum\Protocol;
-use LEDController\Enum\Color;
-use LEDController\Enum\FontSize;
-use LEDController\Enum\Effect;
-use LEDController\Enum\Alignment;
-use LEDController\Enum\ImageMode;
-use LEDController\Enum\Command;
 use LEDController\Builder\TemplateBuilder;
+use LEDController\Enum\Alignment;
+use LEDController\Enum\Color;
+use LEDController\Enum\Command;
+use LEDController\Enum\Effect;
+use LEDController\Enum\FontSize;
+use LEDController\Enum\ImageMode;
+use LEDController\Enum\Protocol;
 use LEDController\Exception\TemplateException;
+use LEDController\LEDController;
 use LEDController\Packet;
 
 /**
- * Template manager for creating and managing display templates
+ * Template manager for creating and managing display templates.
  */
 class TemplateManager
 {
     private LEDController $controller;
+
+    /**
+     * @var array<int, array<string, mixed>> Template configurations
+     */
     private array $templates = [];
+
     private ?int $activeTemplate = null;
 
     public function __construct(LEDController $controller)
@@ -29,49 +36,49 @@ class TemplateManager
     }
 
     /**
-     * Create a new template
+     * Create a new template.
      */
     public function create(int $templateId, int $width, int $height, int $colorMode = Protocol::COLOR_FULL): self
     {
-        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_CREATE);
+        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_CREATE->value);
 
-        $data = chr($templateId);
+        $data = \chr($templateId);
         $data .= pack('n', $width);  // Big-endian
         $data .= pack('n', $height); // Big-endian
-        $data .= chr($colorMode);
+        $data .= \chr($colorMode);
 
         $packet->setData($data);
 
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new TemplateException("Failed to create template: " . $response->getReturnCodeMessage());
+            throw new TemplateException('Failed to create template: ' . $response->getReturnCodeMessage());
         }
 
         $this->templates[$templateId] = [
             'width' => $width,
             'height' => $height,
             'colorMode' => $colorMode,
-            'windows' => []
+            'windows' => [],
         ];
 
         return $this;
     }
 
     /**
-     * Delete a template
+     * Delete a template.
      */
     public function delete(int $templateId): self
     {
-        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_DELETE);
+        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_DELETE->value);
 
-        $data = chr($templateId);
+        $data = \chr($templateId);
         $packet->setData($data);
 
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new TemplateException("Failed to delete template: " . $response->getReturnCodeMessage());
+            throw new TemplateException('Failed to delete template: ' . $response->getReturnCodeMessage());
         }
 
         if ($this->activeTemplate === $templateId) {
@@ -84,33 +91,33 @@ class TemplateManager
     }
 
     /**
-     * Add a window to a template
+     * Add a window to a template.
      */
     public function addWindow(int $templateId, int $windowId, int $x, int $y, int $width, int $height, int $windowType): self
     {
         $this->validateTemplate($templateId);
 
-        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_CREATE);
+        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_CREATE->value);
 
-        $data = chr($templateId);
+        $data = \chr($templateId);
         $data .= pack('n', $this->templates[$templateId]['width']);  // Template width
         $data .= pack('n', $this->templates[$templateId]['height']); // Template height
-        $data .= chr($this->templates[$templateId]['colorMode']);
+        $data .= \chr($this->templates[$templateId]['colorMode']);
 
         // Add window definition
-        $data .= chr($windowId);
+        $data .= \chr($windowId);
         $data .= pack('n', $x);      // Big-endian
         $data .= pack('n', $y);      // Big-endian
         $data .= pack('n', $width);  // Big-endian
         $data .= pack('n', $height); // Big-endian
-        $data .= chr($windowType);
+        $data .= \chr($windowType);
 
         $packet->setData($data);
 
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new TemplateException("Failed to add window: " . $response->getReturnCodeMessage());
+            throw new TemplateException('Failed to add window: ' . $response->getReturnCodeMessage());
         }
 
         $this->templates[$templateId]['windows'][$windowId] = [
@@ -118,87 +125,91 @@ class TemplateManager
             'y' => $y,
             'width' => $width,
             'height' => $height,
-            'type' => $windowType
+            'type' => $windowType,
         ];
 
         return $this;
     }
 
     /**
-     * Send text to a template window
+     * Send text to a template window.
+     *
+     * @param array<string, mixed> $options Text display options
      */
     public function sendText(int $templateId, int $windowId, string $text, array $options = []): self
     {
         $this->validateTemplate($templateId);
         $this->validateWindow($templateId, $windowId);
 
-        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_SEND_TEXT);
+        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_SEND_TEXT->value);
 
-        $data = chr($templateId);
-        $data .= chr($windowId);
+        $data = \chr($templateId);
+        $data .= \chr($windowId);
 
         // Effect
         $effect = $options['effect'] ?? Effect::DRAW;
-        $data .= chr($effect);
+        $data .= \chr($effect);
 
         // Font
         $font = $options['font'] ?? FontSize::FONT_16;
-        $data .= chr($font);
+        $data .= \chr($font);
 
         // Color - Universal color support: hex strings, RGB arrays, or color constants
         $color = $options['color'] ?? Color::RED;
         $rgbColor = Color::convert($color);
 
-        $data .= chr(0x77); // RGB mode
-        $data .= chr($rgbColor['r']);
-        $data .= chr($rgbColor['g']);
-        $data .= chr($rgbColor['b']);
+        $data .= \chr(0x77); // RGB mode
+        $data .= \chr($rgbColor['r']);
+        $data .= \chr($rgbColor['g']);
+        $data .= \chr($rgbColor['b']);
 
         // Alignment
         $align = $options['align'] ?? Alignment::LEFT;
-        $data .= chr($align);
+        $data .= \chr($align);
 
         // Speed and stay time
         $speed = $options['speed'] ?? 5;
         $stay = $options['stay'] ?? 10;
-        $data .= chr($speed);
+        $data .= \chr($speed);
         $data .= pack('n', $stay); // Big-endian
 
         // Text content - send as-is by default
         $data .= $text;
-        $data .= chr(0x00); // Null terminator
+        $data .= \chr(0x00); // Null terminator
 
         $packet->setData($data);
 
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new TemplateException("Failed to send text: " . $response->getReturnCodeMessage());
+            throw new TemplateException('Failed to send text: ' . $response->getReturnCodeMessage());
         }
 
         return $this;
     }
 
     /**
-     * Send image to a template window
+     * Send image to a template window.
+     *
+     * @param array<string, mixed> $options Image display options
      */
     public function sendImage(int $templateId, int $windowId, string $imageData, array $options = []): self
     {
         $this->validateTemplate($templateId);
         $this->validateWindow($templateId, $windowId);
 
-        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_SEND_IMAGE);
+        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_SEND_IMAGE->value);
 
-        $data = chr($templateId);
-        $data .= chr($windowId);
+        $data = \chr($templateId);
+        $data .= \chr($windowId);
 
         // Effect
         $effect = $options['effect'] ?? Effect::DRAW;
-        $data .= chr($effect);
+        $data .= \chr($effect);
 
         // Image mode
         $mode = $options['mode'] ?? ImageMode::CENTER;
-        $data .= chr($mode);
+        $data .= \chr($mode);
 
         // Position
         $x = $options['x'] ?? 0;
@@ -209,7 +220,7 @@ class TemplateManager
         // Speed and stay time
         $speed = $options['speed'] ?? 5;
         $stay = $options['stay'] ?? 10;
-        $data .= chr($speed);
+        $data .= \chr($speed);
         $data .= pack('n', $stay); // Big-endian
 
         // Image data
@@ -220,19 +231,21 @@ class TemplateManager
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new TemplateException("Failed to send image: " . $response->getReturnCodeMessage());
+            throw new TemplateException('Failed to send image: ' . $response->getReturnCodeMessage());
         }
 
         return $this;
     }
 
     /**
-     * Send image file to a template window
+     * Send image file to a template window.
+     *
+     * @param array<string, mixed> $options Image display options
      */
     public function sendImageFile(int $templateId, int $windowId, string $imagePath, array $options = []): self
     {
         if (!file_exists($imagePath)) {
-            throw new TemplateException("Image file not found: $imagePath");
+            throw new TemplateException("Image file not found: {$imagePath}");
         }
 
         $imageData = file_get_contents($imagePath);
@@ -241,15 +254,17 @@ class TemplateManager
     }
 
     /**
-     * Set template properties
+     * Set template properties.
+     *
+     * @param array<string, mixed> $properties Template properties
      */
     public function setProperties(int $templateId, array $properties): self
     {
         $this->validateTemplate($templateId);
 
-        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_PROPERTY);
+        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_PROPERTY->value);
 
-        $data = chr($templateId);
+        $data = \chr($templateId);
 
         // Play time
         if (isset($properties['playTime'])) {
@@ -270,83 +285,83 @@ class TemplateManager
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new TemplateException("Failed to set properties: " . $response->getReturnCodeMessage());
+            throw new TemplateException('Failed to set properties: ' . $response->getReturnCodeMessage());
         }
 
         return $this;
     }
 
     /**
-     * Template play control
+     * Template play control.
      */
     public function playControl(int $templateId, int $action): self
     {
         $this->validateTemplate($templateId);
 
-        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_PLAY_CONTROL);
+        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_PLAY_CONTROL->value);
 
-        $data = chr($templateId);
-        $data .= chr($action);
+        $data = \chr($templateId);
+        $data .= \chr($action);
 
         $packet->setData($data);
 
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new TemplateException("Failed to control template: " . $response->getReturnCodeMessage());
+            throw new TemplateException('Failed to control template: ' . $response->getReturnCodeMessage());
         }
 
         return $this;
     }
 
     /**
-     * Play a program in template
+     * Play a program in template.
      */
     public function playProgram(int $templateId, int $programId): self
     {
         $this->validateTemplate($templateId);
 
-        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_PLAY_PROGRAM);
+        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_PLAY_PROGRAM->value);
 
-        $data = chr($templateId);
-        $data .= chr($programId);
+        $data = \chr($templateId);
+        $data .= \chr($programId);
 
         $packet->setData($data);
 
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new TemplateException("Failed to play program: " . $response->getReturnCodeMessage());
+            throw new TemplateException('Failed to play program: ' . $response->getReturnCodeMessage());
         }
 
         return $this;
     }
 
     /**
-     * Play a playbill in template
+     * Play a playbill in template.
      */
     public function playPlaybill(int $templateId, int $playbillId): self
     {
         $this->validateTemplate($templateId);
 
-        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_PLAY_PLAYBILL);
+        $packet = new Packet($this->controller->getConfig()['cardId'], Command::TEMPLATE_PLAY_PLAYBILL->value);
 
-        $data = chr($templateId);
-        $data .= chr($playbillId);
+        $data = \chr($templateId);
+        $data .= \chr($playbillId);
 
         $packet->setData($data);
 
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new TemplateException("Failed to play playbill: " . $response->getReturnCodeMessage());
+            throw new TemplateException('Failed to play playbill: ' . $response->getReturnCodeMessage());
         }
 
         return $this;
     }
 
     /**
-     * Activate template
+     * Activate template.
      */
     public function activate(int $templateId): self
     {
@@ -359,7 +374,7 @@ class TemplateManager
     }
 
     /**
-     * Stop active template
+     * Stop active template.
      */
     public function stop(): self
     {
@@ -372,7 +387,7 @@ class TemplateManager
     }
 
     /**
-     * Pause active template
+     * Pause active template.
      */
     public function pause(): self
     {
@@ -384,7 +399,9 @@ class TemplateManager
     }
 
     /**
-     * Get template information
+     * Get template information.
+     *
+     * @return array<string, mixed>|null Template configuration
      */
     public function getTemplate(int $templateId): ?array
     {
@@ -392,7 +409,9 @@ class TemplateManager
     }
 
     /**
-     * Get all templates
+     * Get all templates.
+     *
+     * @return array<int, array<string, mixed>> Array of all templates indexed by template ID
      */
     public function getTemplates(): array
     {
@@ -400,7 +419,7 @@ class TemplateManager
     }
 
     /**
-     * Get active template ID
+     * Get active template ID.
      */
     public function getActiveTemplate(): ?int
     {
@@ -408,7 +427,7 @@ class TemplateManager
     }
 
     /**
-     * Clear all templates
+     * Clear all templates.
      */
     public function clearAll(): self
     {
@@ -420,7 +439,7 @@ class TemplateManager
     }
 
     /**
-     * Fluent interface for template creation
+     * Fluent interface for template creation.
      */
     public function template(int $templateId): TemplateBuilder
     {
@@ -428,22 +447,22 @@ class TemplateManager
     }
 
     /**
-     * Validate template exists
+     * Validate template exists.
      */
     private function validateTemplate(int $templateId): void
     {
         if (!isset($this->templates[$templateId])) {
-            throw new TemplateException("Template $templateId does not exist");
+            throw new TemplateException("Template {$templateId} does not exist");
         }
     }
 
     /**
-     * Validate window exists in template
+     * Validate window exists in template.
      */
     private function validateWindow(int $templateId, int $windowId): void
     {
         if (!isset($this->templates[$templateId]['windows'][$windowId])) {
-            throw new TemplateException("Window $windowId does not exist in template $templateId");
+            throw new TemplateException("Window {$windowId} does not exist in template {$templateId}");
         }
     }
 }

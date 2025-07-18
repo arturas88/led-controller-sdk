@@ -1,28 +1,54 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController;
 
-use LEDController\Exception\ValidationException;
-use LEDController\Exception\FileNotFoundException;
-use LEDController\Enum\Color;
-use LEDController\Enum\FontSize;
-use LEDController\Enum\Effect;
 use LEDController\Enum\Alignment;
+use LEDController\Enum\Color;
+use LEDController\Enum\Effect;
+use LEDController\Enum\FontSize;
 use LEDController\Enum\ImageMode;
 use LEDController\Enum\Protocol;
+use LEDController\Exception\FileNotFoundException;
+use LEDController\Exception\ValidationException;
 
 /**
- * Program builder for creating LED display programs
+ * Program builder for creating LED display programs.
  */
 class ProgramBuilder
 {
     private LEDController $controller;
+
+    /**
+     * @var array<int, array<string, mixed>> Window configurations
+     */
     private array $windows = [];
+
+    /**
+     * @var array<int, array<string, mixed>> Window content data
+     */
     private array $windowContent = [];
-    private int $screenWidth;
-    private int $screenHeight;
-    private int $colorMode;
+
+    private int $currentWindow = 0;
+
+    private int $currentContent = 0;
+
+    /**
+     * @var array<string, mixed> Program properties
+     */
     private array $properties = [];
+
+    private int $screenWidth;
+
+    private int $screenHeight;
+
+    private int $colorMode;
+
+    /**
+     * @var array<int, mixed> Program data
+     */
+    private array $program = [];
 
     public function __construct(LEDController $controller)
     {
@@ -35,7 +61,7 @@ class ProgramBuilder
     }
 
     /**
-     * Create a new program
+     * Create a new program.
      */
     public function create(int $width, int $height, int $colorMode = Protocol::COLOR_FULL): self
     {
@@ -50,12 +76,12 @@ class ProgramBuilder
     }
 
     /**
-     * Set repeat times for the program
+     * Set repeat times for the program.
      */
     public function setRepeatTimes(int $times): self
     {
         if ($times < 1 || $times > 65535) {
-            throw new ValidationException("Repeat times must be between 1 and 65535");
+            throw new ValidationException('Repeat times must be between 1 and 65535');
         }
 
         $this->properties['repeatTimes'] = $times;
@@ -65,12 +91,12 @@ class ProgramBuilder
     }
 
     /**
-     * Set play time for the program
+     * Set play time for the program.
      */
     public function setPlayTime(int $seconds): self
     {
         if ($seconds < 1 || $seconds > 65535) {
-            throw new ValidationException("Play time must be between 1 and 65535 seconds");
+            throw new ValidationException('Play time must be between 1 and 65535 seconds');
         }
 
         $this->properties['playTime'] = $seconds;
@@ -80,21 +106,21 @@ class ProgramBuilder
     }
 
     /**
-     * Add a window to the program
+     * Add a window to the program.
      */
     public function addWindow(int $x, int $y, int $width, int $height, ?int $windowNo = null): self
     {
         // Validate window position
         if ($x < 0 || $y < 0 || $x + $width > $this->screenWidth || $y + $height > $this->screenHeight) {
-            throw new ValidationException("Window position/size is outside screen boundaries");
+            throw new ValidationException('Window position/size is outside screen boundaries');
         }
 
         if ($windowNo === null) {
-            $windowNo = count($this->windows);
+            $windowNo = \count($this->windows);
         }
 
         if ($windowNo < 0 || $windowNo > 7) {
-            throw new ValidationException("Window number must be between 0 and 7");
+            throw new ValidationException('Window number must be between 0 and 7');
         }
 
         $this->windows[$windowNo] = [
@@ -108,7 +134,9 @@ class ProgramBuilder
     }
 
     /**
-     * Add text to a window
+     * Add text to a window.
+     *
+     * @param array<string, mixed> $options Text display options
      */
     public function addText(int $windowNo, string $text, array $options = []): self
     {
@@ -135,14 +163,16 @@ class ProgramBuilder
     }
 
     /**
-     * Add image to a window
+     * Add image to a window.
+     *
+     * @param array<string, mixed> $options Image display options
      */
     public function addImage(int $windowNo, string $imagePath, array $options = []): self
     {
         $this->validateWindow($windowNo);
 
         if (!file_exists($imagePath)) {
-            throw new FileNotFoundException("Image not found: $imagePath");
+            throw new FileNotFoundException("Image not found: {$imagePath}");
         }
 
         $defaultOptions = [
@@ -166,7 +196,9 @@ class ProgramBuilder
     }
 
     /**
-     * Add clock to a window
+     * Add clock to a window.
+     *
+     * @param array<string, mixed> $options Clock display options
      */
     public function addClock(int $windowNo, array $options = []): self
     {
@@ -193,7 +225,7 @@ class ProgramBuilder
     }
 
     /**
-     * Display the program
+     * Display the program.
      */
     public function display(): self
     {
@@ -209,7 +241,9 @@ class ProgramBuilder
     }
 
     /**
-     * Send content to a window
+     * Send content to a window.
+     *
+     * @param array<string, mixed> $content Window content data
      */
     private function sendWindowContent(int $windowNo, array $content): void
     {
@@ -219,8 +253,9 @@ class ProgramBuilder
                     $this->controller->getConfig()['cardId'],
                     $windowNo,
                     $content['content'],
-                    $content['options']
+                    $content['options'],
                 );
+
                 break;
 
             case 'image':
@@ -229,16 +264,18 @@ class ProgramBuilder
                     $this->controller->getConfig()['cardId'],
                     $windowNo,
                     $imageData,
-                    $content['options']
+                    $content['options'],
                 );
+
                 break;
 
             case 'clock':
                 $packet = PacketBuilder::createClockPacket(
                     $this->controller->getConfig()['cardId'],
                     $windowNo,
-                    $content['options']
+                    $content['options'],
                 );
+
                 break;
 
             default:
@@ -249,12 +286,22 @@ class ProgramBuilder
     }
 
     /**
-     * Validate window exists
+     * Validate window exists.
      */
     private function validateWindow(int $windowNo): void
     {
         if (!isset($this->windows[$windowNo])) {
-            throw new ValidationException("Window $windowNo not defined");
+            throw new ValidationException("Window {$windowNo} not defined");
         }
+    }
+
+    /**
+     * Get program data.
+     *
+     * @return array<int, mixed> Program data
+     */
+    public function getProgram(): array
+    {
+        return $this->program;
     }
 }

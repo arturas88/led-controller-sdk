@@ -1,36 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Interface;
 
 use LEDController\LEDController;
 
 /**
- * Base interface for all manager classes
+ * Base interface for all manager classes.
  */
 interface ManagerInterface
 {
     /**
-     * Constructor must accept LEDController instance
+     * Constructor must accept LEDController instance.
      */
     public function __construct(LEDController $controller);
 
     /**
-     * Initialize the manager (if needed)
+     * Initialize the manager (if needed).
      */
     public function initialize(): void;
 
     /**
-     * Get the controller instance
+     * Get the controller instance.
      */
     public function getController(): LEDController;
 
     /**
-     * Check if manager is ready for operations
+     * Check if manager is ready for operations.
      */
     public function isReady(): bool;
 
     /**
-     * Clean up resources
+     * Clean up resources.
      */
     public function cleanup(): void;
 }

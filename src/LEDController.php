@@ -1,57 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController;
 
-use LEDController\Interface\CommunicationInterface;
 use LEDController\Communication\NetworkCommunication;
 use LEDController\Communication\SerialCommunication;
-use LEDController\Manager\TemplateManager;
-use LEDController\Manager\FileManager;
-use LEDController\Manager\ScheduleManager;
-use LEDController\Manager\ConfigManager;
-use LEDController\Manager\SetupManager;
-use LEDController\Manager\ExternalCallsManager;
-use LEDController\Manager\ClockManager;
-use LEDController\Manager\TemperatureManager;
-use LEDController\Exception\ConnectionException;
-use LEDController\Exception\FileNotFoundException;
-use LEDController\Exception\CommunicationException;
-use LEDController\Exception\ValidationException;
-use LEDController\TextProcessor;
-use LEDController\Enum\FontSize;
+use LEDController\Enum\Alignment;
 use LEDController\Enum\Color;
 use LEDController\Enum\Effect;
-use LEDController\Enum\Alignment;
-use LEDController\Enum\VerticalAlignment;
+use LEDController\Enum\FontSize;
 use LEDController\Enum\ImageMode;
-use LEDController\ProgramBuilder;
-use LEDController\ControllerStatus;
-use LEDController\PacketBuilder;
-use LEDController\Logger;
-use LEDController\Packet;
-use LEDController\Response;
+use LEDController\Enum\VerticalAlignment;
+use LEDController\Exception\CommunicationException;
+use LEDController\Exception\ConnectionException;
+use LEDController\Exception\FileNotFoundException;
+use LEDController\Exception\ValidationException;
+use LEDController\Interface\CommunicationInterface;
+use LEDController\Manager\ClockManager;
+use LEDController\Manager\ConfigManager;
+use LEDController\Manager\ExternalCallsManager;
+use LEDController\Manager\FileManager;
+use LEDController\Manager\ScheduleManager;
+use LEDController\Manager\SetupManager;
+use LEDController\Manager\TemperatureManager;
+use LEDController\Manager\TemplateManager;
 
 /**
- * Main LED Controller class with fluent interface
+ * Main LED Controller class with fluent interface.
  */
 class LEDController
 {
-    private CommunicationInterface $communication;
-    private array $config;
-    private ?ProgramBuilder $programBuilder = null;
-    private ?TemplateManager $templateManager = null;
-    private ?FileManager $fileManager = null;
-    private ?ScheduleManager $scheduleManager = null;
-    private ?ConfigManager $configManager = null;
-    private ?SetupManager $setupManager = null;
-    private ?ExternalCallsManager $externalCallsManager = null;
-    private ?ClockManager $clockManager = null;
-    private ?TemperatureManager $temperatureManager = null;
-    private bool $connected = false;
-
-    /**
-     * Default configuration
-     */
+    /** Default configuration */
     private const DEFAULT_CONFIG = [
         'ip' => '192.168.1.222',
         'port' => 5200,
@@ -66,37 +46,72 @@ class LEDController
         'displayHeight' => 32,
     ];
 
+    private CommunicationInterface $communication;
+
+    /**
+     * @var array<string, mixed> Configuration array
+     */
+    private array $config = [];
+
+    private ?ProgramBuilder $programBuilder = null;
+
+    private ?TemplateManager $templateManager = null;
+
+    private ?FileManager $fileManager = null;
+
+    private ?ScheduleManager $scheduleManager = null;
+
+    private ?ConfigManager $configManager = null;
+
+    private ?SetupManager $setupManager = null;
+
+    private ?ExternalCallsManager $externalCallsManager = null;
+
+    private ?ClockManager $clockManager = null;
+
+    private ?TemperatureManager $temperatureManager = null;
+
+    private bool $connected = false;
+
+    /**
+     * @param array<string, mixed> $config Controller configuration
+     */
     public function __construct(array $config = [])
     {
         $this->config = array_merge(self::DEFAULT_CONFIG, $config);
         $this->initializeCommunication();
     }
 
-    private function initializeCommunication(): void
+    /**
+     * Access setup manager.
+     */
+    public function setup(): SetupManager
     {
-        if ($this->config['communicationType'] === 'network') {
-            $this->communication = new NetworkCommunication($this->config);
-        } else {
-            $this->communication = new SerialCommunication($this->config);
+        $this->ensureConnected();
+        if (!$this->setupManager) {
+            $this->setupManager = new SetupManager($this);
         }
+
+        return $this->setupManager;
     }
 
     /**
-     * Connect to the LED controller
+     * Connect to the LED controller.
      */
     public function connect(): self
     {
         if (!$this->connected) {
             $this->connected = $this->communication->connect();
             if (!$this->connected) {
-                throw new ConnectionException("Failed to connect to controller");
+                throw new ConnectionException('Failed to connect to controller');
             }
         }
+
         return $this;
     }
 
     /**
-     * Disconnect from the LED controller
+     * Disconnect from the LED controller.
      */
     public function disconnect(): void
     {
@@ -107,7 +122,7 @@ class LEDController
     }
 
     /**
-     * Create a new program builder
+     * Create a new program builder.
      */
     public function program(): ProgramBuilder
     {
@@ -115,11 +130,12 @@ class LEDController
         if (!$this->programBuilder) {
             $this->programBuilder = new ProgramBuilder($this);
         }
+
         return $this->programBuilder;
     }
 
     /**
-     * Access template manager
+     * Access template manager.
      */
     public function template(): TemplateManager
     {
@@ -127,11 +143,12 @@ class LEDController
         if (!$this->templateManager) {
             $this->templateManager = new TemplateManager($this);
         }
+
         return $this->templateManager;
     }
 
     /**
-     * Access file manager
+     * Access file manager.
      */
     public function files(): FileManager
     {
@@ -139,11 +156,12 @@ class LEDController
         if (!$this->fileManager) {
             $this->fileManager = new FileManager($this);
         }
+
         return $this->fileManager;
     }
 
     /**
-     * Access schedule manager
+     * Access schedule manager.
      */
     public function schedule(): ScheduleManager
     {
@@ -151,34 +169,24 @@ class LEDController
         if (!$this->scheduleManager) {
             $this->scheduleManager = new ScheduleManager($this);
         }
+
         return $this->scheduleManager;
     }
 
     /**
-     * Access configuration manager
+     * Access configuration manager.
      */
     public function config(): ConfigManager
     {
         if (!$this->configManager) {
             $this->configManager = new ConfigManager();
         }
+
         return $this->configManager;
     }
 
     /**
-     * Access setup manager
-     */
-    public function setup(): SetupManager
-    {
-        $this->ensureConnected();
-        if (!$this->setupManager) {
-            $this->setupManager = new SetupManager($this);
-        }
-        return $this->setupManager;
-    }
-
-    /**
-     * Access external calls manager
+     * Access external calls manager.
      */
     public function external(): ExternalCallsManager
     {
@@ -186,11 +194,12 @@ class LEDController
         if (!$this->externalCallsManager) {
             $this->externalCallsManager = new ExternalCallsManager($this);
         }
+
         return $this->externalCallsManager;
     }
 
     /**
-     * Get clock manager
+     * Get clock manager.
      */
     public function clock(): ClockManager
     {
@@ -198,11 +207,12 @@ class LEDController
         if (!$this->clockManager) {
             $this->clockManager = new ClockManager($this);
         }
+
         return $this->clockManager;
     }
 
     /**
-     * Get temperature manager
+     * Get temperature manager.
      */
     public function temperature(): TemperatureManager
     {
@@ -210,14 +220,15 @@ class LEDController
         if (!$this->temperatureManager) {
             $this->temperatureManager = new TemperatureManager($this);
         }
+
         return $this->temperatureManager;
     }
 
     /**
-     * Display text with modern features - single source of truth
+     * Display text with modern features - single source of truth.
      *
      * @param string $text The text to display
-     * @param array $options Display options (font, color, effect, window, etc.)
+     * @param array<string, mixed> $options Display options (font, color, effect, window, etc.)
      */
     public function displayText(string $text, array $options = []): self
     {
@@ -233,14 +244,14 @@ class LEDController
             'align' => Alignment::LEFT,
             'valign' => VerticalAlignment::TOP,
             'fontStyle' => 0,
-            'mode' => TextProcessor::MODE_TEXT // Default: send text as-is
+            'mode' => TextProcessor::MODE_TEXT, // Default: send text as-is
         ];
 
         $options = array_merge($defaultOptions, $options);
 
         // Validate window ID
         if ($options['window'] < 0 || $options['window'] > 15) {
-            throw new ValidationException("Window ID must be between 0 and 15");
+            throw new ValidationException('Window ID must be between 0 and 15');
         }
 
         // Process text based on explicit mode
@@ -250,41 +261,48 @@ class LEDController
         // Display based on result type
         if ($result['type'] === 'image') {
             return $this->displayImageData($result['content'], $options);
-        } else {
-            // Universal color support - always use Pure Text packet for full compatibility
-            $packet = PacketBuilder::createPureTextPacket(
-                $this->config['cardId'],
-                $options['window'],
-                $result['content'],
-                $options
-            );
-
-            $this->sendPacket($packet);
         }
+        // Universal color support - always use Pure Text packet for full compatibility
+        $packet = PacketBuilder::createPureTextPacket(
+            $this->config['cardId'],
+            $options['window'],
+            $result['content'],
+            $options,
+        );
+
+        $this->sendPacket($packet);
 
         return $this;
     }
 
     /**
-     * Display text with explicit transliteration
+     * Display text with explicit transliteration.
+     *
+     * @param array<string, mixed> $options Display options
      */
     public function displayTextTransliterated(string $text, array $options = []): self
     {
         $options['mode'] = TextProcessor::MODE_TRANSLITERATE;
+
         return $this->displayText($text, $options);
     }
 
     /**
-     * Display text as image
+     * Display text as image.
+     *
+     * @param array<string, mixed> $options Display options
      */
     public function displayTextAsImage(string $text, array $options = []): self
     {
         $options['mode'] = TextProcessor::MODE_TO_IMAGE;
+
         return $this->displayText($text, $options);
     }
 
     /**
-     * Quick image display
+     * Quick image display.
+     *
+     * @param array<string, mixed> $options Display options
      */
     public function displayImage(string $imagePath, array $options = []): self
     {
@@ -296,13 +314,13 @@ class LEDController
             'y' => 0,
             'mode' => ImageMode::CENTER,
             'speed' => 5,
-            'stay' => 10
+            'stay' => 10,
         ];
 
         $options = array_merge($defaultOptions, $options);
 
         if (!file_exists($imagePath)) {
-            throw new FileNotFoundException("Image file not found: $imagePath");
+            throw new FileNotFoundException("Image file not found: {$imagePath}");
         }
 
         $imageData = file_get_contents($imagePath);
@@ -311,7 +329,7 @@ class LEDController
             $this->config['cardId'],
             $options['window'],
             $imageData,
-            $options
+            $options,
         );
 
         $this->sendPacket($packet);
@@ -319,10 +337,8 @@ class LEDController
         return $this;
     }
 
-
-
     /**
-     * Set controller time
+     * Set controller time.
      */
     public function setTime(?\DateTime $dateTime = null): self
     {
@@ -339,7 +355,7 @@ class LEDController
     }
 
     /**
-     * Get controller time
+     * Get controller time.
      */
     public function getTime(): \DateTime
     {
@@ -350,13 +366,13 @@ class LEDController
             $response = $this->sendPacket($packet);
 
             if (!$response->isSuccess()) {
-                throw new CommunicationException("Failed to get time: " . $response->getReturnCodeMessage());
+                throw new CommunicationException('Failed to get time: ' . $response->getReturnCodeMessage());
             }
 
             return $response->getDateTime();
         } catch (\Exception $e) {
             // Log the error for debugging
-            Logger::getInstance()->error("Time query failed: " . $e->getMessage());
+            Logger::getInstance()->error('Time query failed: ' . $e->getMessage());
 
             // Return current system time as fallback
             return new \DateTime();
@@ -364,14 +380,14 @@ class LEDController
     }
 
     /**
-     * Set brightness
+     * Set brightness.
      */
     public function setBrightness(int $brightness, int $hour = -1): self
     {
         $this->ensureConnected();
 
         if ($brightness < 0 || $brightness > 31) {
-            throw new ValidationException("Brightness must be between 0 and 31");
+            throw new ValidationException('Brightness must be between 0 and 31');
         }
 
         $packet = PacketBuilder::createBrightnessSetPacket($this->config['cardId'], $brightness, $hour);
@@ -381,7 +397,7 @@ class LEDController
     }
 
     /**
-     * Clear the display
+     * Clear the display.
      */
     public function clearDisplay(): self
     {
@@ -396,7 +412,7 @@ class LEDController
 
     /**
      * Reset display to clean state
-     * This method should be called when starting a new example/session
+     * This method should be called when starting a new example/session.
      */
     public function resetDisplay(): self
     {
@@ -419,8 +435,8 @@ class LEDController
                 'effect' => Effect::DRAW,
                 'speed' => 5,
                 'stay' => 100, // Very short display time
-                'align' => Alignment::LEFT
-            ]
+                'align' => Alignment::LEFT,
+            ],
         );
         $this->sendPacket($resetPacket);
 
@@ -432,7 +448,7 @@ class LEDController
     }
 
     /**
-     * Get controller status
+     * Get controller status.
      */
     public function getStatus(): ControllerStatus
     {
@@ -465,7 +481,7 @@ class LEDController
     }
 
     /**
-     * Restart controller
+     * Restart controller.
      */
     public function restart(bool $hardware = false): self
     {
@@ -483,7 +499,7 @@ class LEDController
     }
 
     /**
-     * Send packet to controller
+     * Send packet to controller.
      */
     public function sendPacket(Packet $packet): Response
     {
@@ -505,7 +521,7 @@ class LEDController
                 $retryCount++;
 
                 // Log failed communication
-                Logger::getInstance()->error("Communication failed (retry $retryCount/$maxRetries): " . $e->getMessage());
+                Logger::getInstance()->error("Communication failed (retry {$retryCount}/{$maxRetries}): " . $e->getMessage());
 
                 if ($retryCount >= $maxRetries) {
                     throw $e;
@@ -516,11 +532,11 @@ class LEDController
             }
         }
 
-        throw new CommunicationException("Max retries reached");
+        throw new CommunicationException('Max retries reached');
     }
 
     /**
-     * Get communication interface
+     * Get communication interface.
      */
     public function getCommunication(): CommunicationInterface
     {
@@ -528,7 +544,9 @@ class LEDController
     }
 
     /**
-     * Get configuration
+     * Get configuration.
+     *
+     * @return array<string, mixed> Configuration array
      */
     public function getConfig(): array
     {
@@ -536,7 +554,7 @@ class LEDController
     }
 
     /**
-     * Check if controller is connected
+     * Check if controller is connected.
      */
     public function isConnected(): bool
     {
@@ -544,17 +562,9 @@ class LEDController
     }
 
     /**
-     * Ensure connected
-     */
-    private function ensureConnected(): void
-    {
-        if (!$this->connected) {
-            $this->connect();
-        }
-    }
-
-    /**
-     * Display image data directly (binary data, not file path)
+     * Display image data directly (binary data, not file path).
+     *
+     * @param array<string, mixed> $options Display options
      */
     public function displayImageData(string $imageData, array $options = []): self
     {
@@ -567,7 +577,7 @@ class LEDController
             'effect' => Effect::DRAW,
             'speed' => 5,
             'stay' => 10,
-            'mode' => ImageMode::CENTER
+            'mode' => ImageMode::CENTER,
         ];
 
         $options = array_merge($defaultOptions, $options);
@@ -584,7 +594,7 @@ class LEDController
             'effect' => $options['effect'],
             'speed' => $options['speed'],
             'stay' => $options['stay'],
-            'mode' => $options['mode']
+            'mode' => $options['mode'],
         ];
 
         // Create image packet with binary data
@@ -592,15 +602,34 @@ class LEDController
             $this->config['cardId'],
             $imageOptions['window'],
             $imageData,
-            $imageOptions
+            $imageOptions,
         );
 
         $response = $this->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new CommunicationException("Failed to display image: " . $response->getReturnCodeMessage());
+            throw new CommunicationException('Failed to display image: ' . $response->getReturnCodeMessage());
         }
 
         return $this;
+    }
+
+    private function initializeCommunication(): void
+    {
+        if ($this->config['communicationType'] === 'network') {
+            $this->communication = new NetworkCommunication($this->config);
+        } else {
+            $this->communication = new SerialCommunication($this->config);
+        }
+    }
+
+    /**
+     * Ensure connected.
+     */
+    private function ensureConnected(): void
+    {
+        if (!$this->connected) {
+            $this->connect();
+        }
     }
 }

@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController;
 
 /**
- * Font Analyzer for .fmd font files
+ * Font Analyzer for .fmd font files.
  *
  * This class analyzes LED controller font files (.fmd format) to understand
  * their structure and potentially create custom fonts with extended character support.
@@ -11,12 +13,19 @@ namespace LEDController;
 class FontAnalyzer
 {
     /**
-     * Analyze a .fmd font file
+     * @var array<string, mixed> Font information
+     */
+    private array $fontInfo = [];
+
+    /**
+     * Analyze a .fmd font file.
+     *
+     * @return array<string, mixed> Font analysis data
      */
     public static function analyzeFmdFile(string $filePath): array
     {
         if (!file_exists($filePath)) {
-            throw new \Exception("Font file not found: $filePath");
+            throw new \Exception("Font file not found: {$filePath}");
         }
 
         $data = file_get_contents($filePath);
@@ -30,7 +39,7 @@ class FontAnalyzer
             'header' => [],
             'structure' => [],
             'character_data' => [],
-            'suspected_format' => self::detectFormat($filePath, $data)
+            'suspected_format' => self::detectFormat($filePath, $data),
         ];
 
         // Analyze header (first 32 bytes)
@@ -46,7 +55,37 @@ class FontAnalyzer
     }
 
     /**
-     * Detect .fmd format based on file name and content
+     * Create a custom font with Lithuanian/Russian characters.
+     *
+     * @param array<string, mixed> $customChars Custom character definitions
+     */
+    public static function createCustomFont(string $baseFontPath, array $customChars): string
+    {
+        // This would be the ultimate solution - creating custom .fmd files
+        // with extended character support
+
+        if (!file_exists($baseFontPath)) {
+            throw new \Exception("Base font file not found: {$baseFontPath}");
+        }
+
+        // Load base font
+        $baseFontData = file_get_contents($baseFontPath);
+        $analysis = self::analyzeFmdFile($baseFontPath);
+
+        // Create new font data with extended characters
+        $newFontData = self::extendFontData($baseFontData, $analysis, $customChars);
+
+        // Save custom font
+        $customFontPath = \dirname($baseFontPath) . '/custom_' . basename($baseFontPath);
+        file_put_contents($customFontPath, $newFontData);
+
+        return $customFontPath;
+    }
+
+    /**
+     * Detect .fmd format based on file name and content.
+     *
+     * @return array<string, mixed> Format detection data
      */
     private static function detectFormat(string $filePath, string $data): array
     {
@@ -55,7 +94,7 @@ class FontAnalyzer
             'type' => 'unknown',
             'size' => null,
             'encoding' => 'unknown',
-            'confidence' => 0
+            'confidence' => 0,
         ];
 
         // Analyze file name patterns
@@ -84,13 +123,15 @@ class FontAnalyzer
     }
 
     /**
-     * Analyze file header
+     * Analyze file header.
+     *
+     * @return array<string, mixed> Header analysis data
      */
     private static function analyzeHeader(string $data): array
     {
         $header = [];
 
-        if (strlen($data) < 32) {
+        if (\strlen($data) < 32) {
             return ['error' => 'File too small for header analysis'];
         }
 
@@ -110,7 +151,9 @@ class FontAnalyzer
     }
 
     /**
-     * Analyze character data patterns
+     * Analyze character data patterns.
+     *
+     * @return array<string, mixed> Character data analysis
      */
     private static function analyzeCharacterData(string $data): array
     {
@@ -118,14 +161,14 @@ class FontAnalyzer
 
         // Skip potential header and analyze data patterns
         $dataStart = 32; // Assume 32-byte header
-        if (strlen($data) <= $dataStart) {
+        if (\strlen($data) <= $dataStart) {
             return ['error' => 'File too small for character data'];
         }
 
         $charBytes = substr($data, $dataStart);
 
         // Analyze byte patterns
-        $charData['total_bytes'] = strlen($charBytes);
+        $charData['total_bytes'] = \strlen($charBytes);
         $charData['byte_distribution'] = self::getByteDistribution($charBytes);
         $charData['patterns'] = self::findPatterns($charBytes);
 
@@ -136,7 +179,9 @@ class FontAnalyzer
     }
 
     /**
-     * Analyze file structure
+     * Analyze file structure.
+     *
+     * @return array<string, mixed> Structure analysis data
      */
     private static function analyzeStructure(string $filePath, string $data): array
     {
@@ -156,7 +201,9 @@ class FontAnalyzer
     }
 
     /**
-     * Analyze ASCII font structure
+     * Analyze ASCII font structure.
+     *
+     * @return array<string, mixed> ASCII structure data
      */
     private static function analyzeAsciiStructure(string $data): array
     {
@@ -164,13 +211,15 @@ class FontAnalyzer
             'type' => 'ascii_font',
             'expected_chars' => 128, // Standard ASCII
             'char_range' => '0x00-0x7F',
-            'estimated_char_size' => strlen($data) / 128,
-            'notes' => 'Standard ASCII character set (128 characters)'
+            'estimated_char_size' => \strlen($data) / 128,
+            'notes' => 'Standard ASCII character set (128 characters)',
         ];
     }
 
     /**
-     * Analyze GB (Chinese) font structure
+     * Analyze GB (Chinese) font structure.
+     *
+     * @return array<string, mixed> GB structure data
      */
     private static function analyzeGbStructure(string $data): array
     {
@@ -178,25 +227,29 @@ class FontAnalyzer
             'type' => 'gb_font',
             'expected_chars' => 7445, // GB2312 character count
             'char_range' => 'GB2312',
-            'estimated_char_size' => strlen($data) / 7445,
-            'notes' => 'Chinese GB2312 character set'
+            'estimated_char_size' => \strlen($data) / 7445,
+            'notes' => 'Chinese GB2312 character set',
         ];
     }
 
     /**
-     * Analyze generic font structure
+     * Analyze generic font structure.
+     *
+     * @return array<string, mixed> Generic structure data
      */
     private static function analyzeGenericStructure(string $data): array
     {
         return [
             'type' => 'generic_font',
             'estimated_char_size' => self::estimateCharacterSize($data),
-            'notes' => 'Unknown font structure'
+            'notes' => 'Unknown font structure',
         ];
     }
 
     /**
-     * Find possible dimensions in header bytes
+     * Find possible dimensions in header bytes.
+     *
+     * @return array<int, array<string, mixed>> Dimension data
      */
     private static function findDimensions(string $headerBytes): array
     {
@@ -207,11 +260,11 @@ class FontAnalyzer
         $commonSizes = [8, 12, 16, 24, 32, 40, 48, 56];
 
         foreach ($bytes as $i => $byte) {
-            if (in_array($byte, $commonSizes)) {
+            if (\in_array($byte, $commonSizes, true)) {
                 $dimensions[] = [
                     'position' => $i,
                     'value' => $byte,
-                    'type' => 'possible_font_size'
+                    'type' => 'possible_font_size',
                 ];
             }
         }
@@ -220,30 +273,34 @@ class FontAnalyzer
     }
 
     /**
-     * Get byte distribution for pattern analysis
+     * Get byte distribution for pattern analysis.
+     *
+     * @return array<string, mixed> Byte distribution data
      */
     private static function getByteDistribution(string $data): array
     {
         $distribution = array_fill(0, 256, 0);
 
-        for ($i = 0; $i < strlen($data); $i++) {
-            $byte = ord($data[$i]);
+        for ($i = 0; $i < \strlen($data); $i++) {
+            $byte = \ord($data[$i]);
             $distribution[$byte]++;
         }
 
         // Find most common bytes
         arsort($distribution);
-        $topBytes = array_slice($distribution, 0, 10, true);
+        $topBytes = \array_slice($distribution, 0, 10, true);
 
         return [
             'most_common' => $topBytes,
             'zero_bytes' => $distribution[0],
-            'ff_bytes' => $distribution[255]
+            'ff_bytes' => $distribution[255],
         ];
     }
 
     /**
-     * Find repeating patterns
+     * Find repeating patterns.
+     *
+     * @return array<int, array<string, mixed>> Pattern data
      */
     private static function findPatterns(string $data): array
     {
@@ -252,7 +309,7 @@ class FontAnalyzer
         // Look for repeating byte sequences
         for ($len = 2; $len <= 16; $len++) {
             $sequences = [];
-            for ($i = 0; $i <= strlen($data) - $len; $i++) {
+            for ($i = 0; $i <= \strlen($data) - $len; $i++) {
                 $seq = substr($data, $i, $len);
                 if (!isset($sequences[$seq])) {
                     $sequences[$seq] = 0;
@@ -262,14 +319,14 @@ class FontAnalyzer
 
             // Find most common sequences
             arsort($sequences);
-            $topSequences = array_slice($sequences, 0, 3, true);
+            $topSequences = \array_slice($sequences, 0, 3, true);
 
             foreach ($topSequences as $seq => $count) {
                 if ($count > 2) { // Only patterns that repeat
                     $patterns[] = [
                         'length' => $len,
                         'pattern' => bin2hex($seq),
-                        'count' => $count
+                        'count' => $count,
                     ];
                 }
             }
@@ -279,7 +336,9 @@ class FontAnalyzer
     }
 
     /**
-     * Estimate character count
+     * Estimate character count.
+     *
+     * @return array<int, array<string, mixed>> Character count estimates
      */
     private static function estimateCharacterCount(string $data): array
     {
@@ -289,10 +348,10 @@ class FontAnalyzer
         $commonCounts = [128, 256, 512, 1024, 7445]; // ASCII, Extended ASCII, etc.
 
         foreach ($commonCounts as $count) {
-            $charSize = strlen($data) / $count;
+            $charSize = \strlen($data) / $count;
             $estimates[$count] = [
                 'char_size' => $charSize,
-                'probability' => self::calculateProbability($charSize)
+                'probability' => self::calculateProbability($charSize),
             ];
         }
 
@@ -300,16 +359,16 @@ class FontAnalyzer
     }
 
     /**
-     * Estimate character size
+     * Estimate character size.
      */
     private static function estimateCharacterSize(string $data): float
     {
         // Assume ASCII and calculate
-        return strlen($data) / 128;
+        return \strlen($data) / 128;
     }
 
     /**
-     * Calculate probability of character size being correct
+     * Calculate probability of character size being correct.
      */
     private static function calculateProbability(float $charSize): float
     {
@@ -326,24 +385,26 @@ class FontAnalyzer
     }
 
     /**
-     * Analyze content for patterns
+     * Analyze content for patterns.
+     *
+     * @return array<string, mixed> Content analysis data
      */
     private static function analyzeContent(string $data): array
     {
         return [
             'entropy' => self::calculateEntropy($data),
-            'null_percentage' => (substr_count($data, "\x00") / strlen($data)) * 100,
-            'binary_patterns' => self::detectBinaryPatterns($data)
+            'null_percentage' => (substr_count($data, "\x00") / \strlen($data)) * 100,
+            'binary_patterns' => self::detectBinaryPatterns($data),
         ];
     }
 
     /**
-     * Calculate data entropy
+     * Calculate data entropy.
      */
     private static function calculateEntropy(string $data): float
     {
         $frequencies = array_count_values(str_split($data));
-        $length = strlen($data);
+        $length = \strlen($data);
         $entropy = 0;
 
         foreach ($frequencies as $frequency) {
@@ -355,19 +416,21 @@ class FontAnalyzer
     }
 
     /**
-     * Detect binary patterns that suggest font data
+     * Detect binary patterns that suggest font data.
+     *
+     * @return array<string, mixed> Binary pattern data
      */
     private static function detectBinaryPatterns(string $data): array
     {
         return [
             'has_bitmap_patterns' => self::hasBitmapPatterns($data),
             'regular_spacing' => self::hasRegularSpacing($data),
-            'character_boundaries' => self::detectCharacterBoundaries($data)
+            'character_boundaries' => self::detectCharacterBoundaries($data),
         ];
     }
 
     /**
-     * Check for bitmap patterns
+     * Check for bitmap patterns.
      */
     private static function hasBitmapPatterns(string $data): bool
     {
@@ -376,11 +439,11 @@ class FontAnalyzer
         $ffCount = substr_count($data, "\xFF");
 
         // Bitmap fonts often have many null bytes and some full bytes
-        return ($nullCount > strlen($data) * 0.1 && $ffCount > 0);
+        return $nullCount > \strlen($data) * 0.1 && $ffCount > 0;
     }
 
     /**
-     * Check for regular spacing
+     * Check for regular spacing.
      */
     private static function hasRegularSpacing(string $data): bool
     {
@@ -389,7 +452,9 @@ class FontAnalyzer
     }
 
     /**
-     * Detect character boundaries
+     * Detect character boundaries.
+     *
+     * @return array<string, mixed> Character boundary data
      */
     private static function detectCharacterBoundaries(string $data): array
     {
@@ -397,43 +462,21 @@ class FontAnalyzer
     }
 
     /**
-     * Format bytes for human reading
+     * Format bytes for human reading.
      */
     private static function formatBytes(int $bytes): string
     {
         $units = ['B', 'KB', 'MB', 'GB'];
         $power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
-        return number_format($bytes / pow(1024, $power), 2) . ' ' . $units[$power];
+
+        return number_format($bytes / 1024 ** $power, 2) . ' ' . $units[$power];
     }
 
     /**
-     * Create a custom font with Lithuanian/Russian characters
-     */
-    public static function createCustomFont(string $baseFontPath, array $customChars): string
-    {
-        // This would be the ultimate solution - creating custom .fmd files
-        // with extended character support
-
-        if (!file_exists($baseFontPath)) {
-            throw new \Exception("Base font file not found: $baseFontPath");
-        }
-
-        // Load base font
-        $baseFontData = file_get_contents($baseFontPath);
-        $analysis = self::analyzeFmdFile($baseFontPath);
-
-        // Create new font data with extended characters
-        $newFontData = self::extendFontData($baseFontData, $analysis, $customChars);
-
-        // Save custom font
-        $customFontPath = dirname($baseFontPath) . '/custom_' . basename($baseFontPath);
-        file_put_contents($customFontPath, $newFontData);
-
-        return $customFontPath;
-    }
-
-    /**
-     * Extend font data with custom characters
+     * Extend font data with custom characters.
+     *
+     * @param array<string, mixed> $analysis Font analysis data
+     * @param array<string, mixed> $customChars Custom character definitions
      */
     private static function extendFontData(string $baseFontData, array $analysis, array $customChars): string
     {
@@ -442,5 +485,15 @@ class FontAnalyzer
 
         // For now, return the base data (placeholder)
         return $baseFontData;
+    }
+
+    /**
+     * Get font information.
+     *
+     * @return array<string, mixed> Font information
+     */
+    public function getFontInfo(): array
+    {
+        return $this->fontInfo;
     }
 }

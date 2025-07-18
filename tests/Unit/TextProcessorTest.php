@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Tests\Unit;
 
 use LEDController\TextProcessor;
@@ -16,50 +18,50 @@ class TextProcessorTest extends TestCase
 
     public function testTextModeConstants()
     {
-        $this->assertEquals('text', TextProcessor::MODE_TEXT);
-        $this->assertEquals('transliterate', TextProcessor::MODE_TRANSLITERATE);
-        $this->assertEquals('to_image', TextProcessor::MODE_TO_IMAGE);
+        self::assertSame('text', TextProcessor::MODE_TEXT);
+        self::assertSame('transliterate', TextProcessor::MODE_TRANSLITERATE);
+        self::assertSame('to_image', TextProcessor::MODE_TO_IMAGE);
     }
 
     public function testProcessTextDefaultMode()
     {
         $result = $this->processor->processText('Hello World');
 
-        $this->assertEquals('text', $result['type']);
-        $this->assertEquals('Hello World', $result['content']);
-        $this->assertEquals('text', $result['method']);
+        self::assertSame('text', $result['type']);
+        self::assertSame('Hello World', $result['content']);
+        self::assertSame('text', $result['method']);
     }
 
     public function testProcessTextWithExplicitTextMode()
     {
         $result = $this->processor->processText('Hello World', ['mode' => TextProcessor::MODE_TEXT]);
 
-        $this->assertEquals('text', $result['type']);
-        $this->assertEquals('Hello World', $result['content']);
-        $this->assertEquals('text', $result['method']);
+        self::assertSame('text', $result['type']);
+        self::assertSame('Hello World', $result['content']);
+        self::assertSame('text', $result['method']);
     }
 
     public function testProcessTextWithTransliterateMode()
     {
         $result = $this->processor->processText('Héllo Wörld', ['mode' => TextProcessor::MODE_TRANSLITERATE]);
 
-        $this->assertEquals('text', $result['type']);
-        $this->assertEquals('transliterate', $result['method']);
-        $this->assertArrayHasKey('original_text', $result);
-        $this->assertEquals('Héllo Wörld', $result['original_text']);
+        self::assertSame('text', $result['type']);
+        self::assertSame('transliterate', $result['method']);
+        self::assertArrayHasKey('original_text', $result);
+        self::assertSame('Héllo Wörld', $result['original_text']);
 
         // The transliterated text should be different from the original
-        $this->assertNotEquals('Héllo Wörld', $result['content']);
+        self::assertNotSame('Héllo Wörld', $result['content']);
     }
 
     public function testProcessTextWithToImageMode()
     {
-        if (!extension_loaded('gd')) {
-            $this->markTestSkipped('GD extension is not available');
+        if (!\extension_loaded('gd')) {
+            self::markTestSkipped('GD extension is not available');
         }
 
         // Skip this test due to color conversion issues in the implementation
-        $this->markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
+        self::markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
     }
 
     public function testProcessTextWithInvalidMode()
@@ -73,70 +75,70 @@ class TextProcessorTest extends TestCase
     public function testTransliterateTextBasic()
     {
         $result = TextProcessor::transliterateText('Hello World');
-        $this->assertEquals('Hello World', $result); // ASCII text should remain unchanged
+        self::assertSame('Hello World', $result); // ASCII text should remain unchanged
     }
 
     public function testTransliterateTextWithAccents()
     {
         $result = TextProcessor::transliterateText('Café');
         // Should convert accented characters to ASCII equivalents
-        $this->assertNotEquals('Café', $result);
+        self::assertNotSame('Café', $result);
         // The result might vary based on system configuration, so just check it's a string
-        $this->assertIsString($result);
+        self::assertIsString($result);
     }
 
     public function testTransliterateTextWithOptions()
     {
         $result = TextProcessor::transliterateText('Héllo', ['from' => 'UTF-8', 'to' => 'ASCII//TRANSLIT']);
-        $this->assertIsString($result);
-        $this->assertNotEquals('Héllo', $result);
+        self::assertIsString($result);
+        self::assertNotSame('Héllo', $result);
     }
 
     public function testRenderTextToImageBasic()
     {
-        $this->markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
+        self::markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
     }
 
     public function testRenderTextToImageWithColors()
     {
-        $this->markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
+        self::markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
     }
 
     public function testRenderTextToImageWithHexColors()
     {
-        $this->markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
+        self::markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
     }
 
     public function testRenderTextToImageBuiltinFallback()
     {
-        $this->markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
+        self::markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
     }
 
     public function testProcessorWithCustomConfig()
     {
-        $this->markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
+        self::markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
     }
 
     public function testProcessorOptionsOverrideDefaults()
     {
-        $this->markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
+        self::markTestSkipped('Skipping due to color conversion issues in TextProcessor implementation');
     }
 
     public function testTransliterateTextFailsGracefully()
     {
         // Test with text that might fail transliteration
         $result = TextProcessor::transliterateText('Hello World');
-        $this->assertIsString($result);
-        $this->assertNotEmpty($result);
+        self::assertIsString($result);
+        self::assertNotEmpty($result);
     }
 
     public function testTextProcessorHandlesEmptyText()
     {
         $result = $this->processor->processText('');
 
-        $this->assertEquals('text', $result['type']);
-        $this->assertEquals('', $result['content']);
-        $this->assertEquals('text', $result['method']);
+        self::assertSame('text', $result['type']);
+        self::assertSame('', $result['content']);
+        self::assertSame('text', $result['method']);
     }
 
     public function testTextProcessorHandlesSpecialCharacters()
@@ -144,18 +146,18 @@ class TextProcessorTest extends TestCase
         $specialText = "Hello\nWorld\tTest!@#$%^&*()";
         $result = $this->processor->processText($specialText);
 
-        $this->assertEquals('text', $result['type']);
-        $this->assertEquals($specialText, $result['content']);
-        $this->assertEquals('text', $result['method']);
+        self::assertSame('text', $result['type']);
+        self::assertSame($specialText, $result['content']);
+        self::assertSame('text', $result['method']);
     }
 
     public function testTransliterateWithUnicode()
     {
-        $unicodeText = "Привет мир"; // Russian text
+        $unicodeText = 'Привет мир'; // Russian text
         $result = TextProcessor::transliterateText($unicodeText);
 
-        $this->assertIsString($result);
+        self::assertIsString($result);
         // Should be transliterated to Latin characters
-        $this->assertNotEquals($unicodeText, $result);
+        self::assertNotSame($unicodeText, $result);
     }
 }

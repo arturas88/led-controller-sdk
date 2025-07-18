@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Baud rate enumeration
+ * Baud rate enumeration.
  */
 enum BaudRate: int
 {
@@ -14,7 +16,7 @@ enum BaudRate: int
     case BAUD_115200 = 4;
 
     /**
-     * Get actual baud rate value
+     * Get actual baud rate value.
      */
     public function getRate(): int
     {
@@ -28,7 +30,7 @@ enum BaudRate: int
     }
 
     /**
-     * Get baud rate name
+     * Get baud rate name.
      */
     public function getName(): string
     {
@@ -42,7 +44,7 @@ enum BaudRate: int
     }
 
     /**
-     * Get baud rate from actual rate value
+     * Get baud rate from actual rate value.
      */
     public static function fromRate(int $rate): self
     {
@@ -57,7 +59,7 @@ enum BaudRate: int
     }
 
     /**
-     * Get fastest baud rate
+     * Get fastest baud rate.
      */
     public static function fastest(): self
     {
@@ -65,7 +67,7 @@ enum BaudRate: int
     }
 
     /**
-     * Get slowest baud rate
+     * Get slowest baud rate.
      */
     public static function slowest(): self
     {
@@ -73,7 +75,9 @@ enum BaudRate: int
     }
 
     /**
-     * Get all available baud rates
+     * Get all available baud rates.
+     *
+     * @return array<int, int> Array of all available baud rates
      */
     public static function getAllRates(): array
     {
@@ -87,7 +91,7 @@ enum BaudRate: int
     }
 
     /**
-     * Get baud rate by code (for backward compatibility)
+     * Get baud rate by code (for backward compatibility).
      */
     public static function getBaudRate(int $code): int
     {

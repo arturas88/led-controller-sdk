@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Protocol constants enumeration
+ * Protocol constants enumeration.
  *
  * Contains various protocol-specific constants not covered by other enums
  */
@@ -81,7 +83,7 @@ class Protocol
     // =========================================================================
 
     /**
-     * Get color mode name
+     * Get color mode name.
      */
     public static function getColorModeName(int $mode): string
     {
@@ -94,7 +96,7 @@ class Protocol
     }
 
     /**
-     * Get clock format name
+     * Get clock format name.
      */
     public static function getClockFormatName(int $format): string
     {
@@ -106,7 +108,7 @@ class Protocol
     }
 
     /**
-     * Get temperature unit name
+     * Get temperature unit name.
      */
     public static function getTemperatureUnitName(int $unit): string
     {
@@ -118,7 +120,7 @@ class Protocol
     }
 
     /**
-     * Get variable type name
+     * Get variable type name.
      */
     public static function getVariableTypeName(int $type): string
     {
@@ -131,7 +133,7 @@ class Protocol
     }
 
     /**
-     * Get external call command name
+     * Get external call command name.
      */
     public static function getExternalCallName(int $command): string
     {
@@ -158,7 +160,9 @@ class Protocol
     }
 
     /**
-     * Get all external call commands
+     * Get all external call commands.
+     *
+     * @return array<int, string> Array mapping external call command codes to their names
      */
     public static function getAllExternalCalls(): array
     {
@@ -184,7 +188,9 @@ class Protocol
     }
 
     /**
-     * Get all color modes
+     * Get all color modes.
+     *
+     * @return array<int, string> Array mapping color mode codes to their names
      */
     public static function getAllColorModes(): array
     {
@@ -196,7 +202,9 @@ class Protocol
     }
 
     /**
-     * Get all clock content flags
+     * Get all clock content flags.
+     *
+     * @return array<int, string> Array mapping clock content flag codes to their names
      */
     public static function getAllClockContentFlags(): array
     {
@@ -212,7 +220,7 @@ class Protocol
     }
 
     /**
-     * Check if clock content flag is set
+     * Check if clock content flag is set.
      */
     public static function isClockContentSet(int $flags, int $flag): bool
     {
@@ -220,14 +228,18 @@ class Protocol
     }
 
     /**
-     * Create clock content flags
+     * Create clock content flags.
+     *
+     * @param array<int, int> $flags Array of clock content flag codes to combine
+     *
+     * @return int Combined clock content flags
      */
     public static function createClockContentFlags(array $flags): int
     {
         $result = 0;
         foreach ($flags as $flag) {
             if (
-                in_array(
+                \in_array(
                     $flag,
                     [
                         self::CLOCK_SHOW_YEAR,
@@ -237,12 +249,14 @@ class Protocol
                         self::CLOCK_SHOW_MINUTE,
                         self::CLOCK_SHOW_SECOND,
                         self::CLOCK_SHOW_WEEKDAY,
-                    ]
+                    ],
+                    true,
                 )
             ) {
                 $result |= $flag;
             }
         }
+
         return $result;
     }
 }

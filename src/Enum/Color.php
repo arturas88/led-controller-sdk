@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Enhanced Color enumeration with comprehensive color management
+ * Enhanced Color enumeration with comprehensive color management.
  *
  * Provides type-safe color handling with conversion, manipulation, and palette management
  * for LED displays. Supports various color formats and advanced color operations.
@@ -67,23 +69,23 @@ enum Color: int
     // Color palettes
     public const PALETTE_BASIC = [
         self::RGB_RED, self::RGB_GREEN, self::RGB_BLUE, self::RGB_YELLOW,
-        self::RGB_MAGENTA, self::RGB_CYAN, self::RGB_WHITE, self::RGB_BLACK
+        self::RGB_MAGENTA, self::RGB_CYAN, self::RGB_WHITE, self::RGB_BLACK,
     ];
 
     public const PALETTE_WARM = [
-        self::RGB_RED, self::RGB_ORANGE, self::RGB_YELLOW, self::RGB_PINK, self::RGB_GOLD
+        self::RGB_RED, self::RGB_ORANGE, self::RGB_YELLOW, self::RGB_PINK, self::RGB_GOLD,
     ];
 
     public const PALETTE_COOL = [
-        self::RGB_BLUE, self::RGB_CYAN, self::RGB_TEAL, self::RGB_LIME, self::RGB_NAVY
+        self::RGB_BLUE, self::RGB_CYAN, self::RGB_TEAL, self::RGB_LIME, self::RGB_NAVY,
     ];
 
     public const PALETTE_GRAYSCALE = [
-        self::RGB_BLACK, self::RGB_DARK_GRAY, self::RGB_GRAY, self::RGB_LIGHT_GRAY, self::RGB_WHITE
+        self::RGB_BLACK, self::RGB_DARK_GRAY, self::RGB_GRAY, self::RGB_LIGHT_GRAY, self::RGB_WHITE,
     ];
 
     public const PALETTE_STATUS = [
-        self::RGB_SUCCESS, self::RGB_WARNING, self::RGB_ERROR, self::RGB_INFO
+        self::RGB_SUCCESS, self::RGB_WARNING, self::RGB_ERROR, self::RGB_INFO,
     ];
 
     // =========================================================================
@@ -91,10 +93,13 @@ enum Color: int
     // =========================================================================
 
     /**
-     * Universal color converter - accepts hex strings, RGB arrays, Color enums, or color constants
-     * Returns Color enum instance or creates RGB array for complex colors
+     * Universal color converter - accepts hex strings, RGB arrays, Color enums, or color constants.
+     *
+     * @param array<string, int>|string|Color|int $color
+     *
+     * @return array<string, int>|Color
      */
-    public static function convert(string|array|Color|int $color): Color|array
+    public static function convert(array|string|Color|int $color): array|Color
     {
         // Handle Color enum
         if ($color instanceof Color) {
@@ -102,21 +107,21 @@ enum Color: int
         }
 
         // Handle hex strings (like "#112233" or "112233")
-        if (is_string($color) && preg_match('/^#?[0-9a-fA-F]{3,6}$/', $color)) {
+        if (\is_string($color) && preg_match('/^#?[0-9a-fA-F]{3,6}$/', $color)) {
             return self::fromHexString($color);
         }
 
         // Handle RGB arrays - return as array since we can't create custom enum values
-        if (is_array($color)) {
+        if (\is_array($color)) {
             return [
                 'r' => max(0, min(255, (int)($color['r'] ?? 0))),
                 'g' => max(0, min(255, (int)($color['g'] ?? 0))),
-                'b' => max(0, min(255, (int)($color['b'] ?? 0)))
+                'b' => max(0, min(255, (int)($color['b'] ?? 0))),
             ];
         }
 
         // Handle integer constants
-        if (is_int($color)) {
+        if (\is_int($color)) {
             return match ($color) {
                 0x00 => self::BLACK,
                 0x01 => self::RED,
@@ -131,22 +136,32 @@ enum Color: int
         }
 
         throw new \InvalidArgumentException(
-            'Invalid color format. Use hex string, RGB array, Color enum, or color constant.'
+            'Invalid color format. Use hex string, RGB array, Color enum, or color constant.',
         );
     }
 
     /**
-     * Create Color from hex string
+     * Create Color from hex string.
+     *
+     * @param string $hex
+     *
+     * @return array<string, int>|Color
      */
-    public static function fromHex(string $hex): Color|array
+    public static function fromHex(string $hex): array|Color
     {
         return self::fromHexString($hex);
     }
 
     /**
-     * Create Color from RGB values
+     * Create Color from RGB values.
+     *
+     * @param int $r
+     * @param int $g
+     * @param int $b
+     *
+     * @return array<string, int>|Color
      */
-    public static function fromRgb(int $r, int $g, int $b): Color|array
+    public static function fromRgb(int $r, int $g, int $b): array|Color
     {
         // Try to match to existing enum first
         $existing = self::fromRgbMatch($r, $g, $b);
@@ -158,20 +173,30 @@ enum Color: int
         return [
             'r' => max(0, min(255, $r)),
             'g' => max(0, min(255, $g)),
-            'b' => max(0, min(255, $b))
+            'b' => max(0, min(255, $b)),
         ];
     }
 
     /**
-     * Create Color from RGB array
+     * Create Color from RGB array.
+     *
+     * @param array<string, int> $rgb
+     *
+     * @return array<string, int>|Color
      */
-    public static function fromArray(array $rgb): Color|array
+    public static function fromArray(array $rgb): array|Color
     {
         return self::fromRgb($rgb['r'] ?? 0, $rgb['g'] ?? 0, $rgb['b'] ?? 0);
     }
 
     /**
-     * Create Color from HSL values
+     * Create Color from HSL values.
+     *
+     * @param float $h
+     * @param float $s
+     * @param float $l
+     *
+     * @return array<string, int>
      */
     public static function fromHsl(float $h, float $s, float $l): array
     {
@@ -182,13 +207,13 @@ enum Color: int
         if ($s === 0) {
             $r = $g = $b = $l;
         } else {
-            $hue2rgb = function ($p, $q, $t) {
+            $hue2rgb = static function ($p, $q, $t) {
                 if ($t < 0) {
-                    $t += 1;
+                    ++$t;
                 }
 
                 if ($t > 1) {
-                    $t -= 1;
+                    --$t;
                 }
 
                 if ($t < 1 / 6) {
@@ -216,7 +241,7 @@ enum Color: int
         return [
             'r' => (int) round($r * 255),
             'g' => (int) round($g * 255),
-            'b' => (int) round($b * 255)
+            'b' => (int) round($b * 255),
         ];
     }
 
@@ -225,7 +250,9 @@ enum Color: int
     // =========================================================================
 
     /**
-     * Get RGB color array
+     * Get RGB color array.
+     *
+     * @return array<string, int>
      */
     public function toRgb(): array
     {
@@ -242,16 +269,17 @@ enum Color: int
     }
 
     /**
-     * Get hex color string
+     * Get hex color string.
      */
     public function toHex(): string
     {
         $rgb = $this->toRgb();
-        return sprintf('#%02x%02x%02x', $rgb['r'], $rgb['g'], $rgb['b']);
+
+        return \sprintf('#%02x%02x%02x', $rgb['r'], $rgb['g'], $rgb['b']);
     }
 
     /**
-     * Get color name
+     * Get color name.
      */
     public function getName(): string
     {
@@ -268,7 +296,11 @@ enum Color: int
     }
 
     /**
-     * Lighten the color by percentage
+     * Lighten the color by percentage.
+     *
+     * @param float $percentage
+     *
+     * @return array<string, int>
      */
     public function lighten(float $percentage): array
     {
@@ -278,12 +310,16 @@ enum Color: int
         return [
             'r' => min(255, (int) round($rgb['r'] + (255 - $rgb['r']) * $percentage)),
             'g' => min(255, (int) round($rgb['g'] + (255 - $rgb['g']) * $percentage)),
-            'b' => min(255, (int) round($rgb['b'] + (255 - $rgb['b']) * $percentage))
+            'b' => min(255, (int) round($rgb['b'] + (255 - $rgb['b']) * $percentage)),
         ];
     }
 
     /**
-     * Darken the color by percentage
+     * Darken the color by percentage.
+     *
+     * @param float $percentage
+     *
+     * @return array<string, int>
      */
     public function darken(float $percentage): array
     {
@@ -293,14 +329,19 @@ enum Color: int
         return [
             'r' => max(0, (int) round($rgb['r'] * (1 - $percentage))),
             'g' => max(0, (int) round($rgb['g'] * (1 - $percentage))),
-            'b' => max(0, (int) round($rgb['b'] * (1 - $percentage)))
+            'b' => max(0, (int) round($rgb['b'] * (1 - $percentage))),
         ];
     }
 
     /**
-     * Blend with another color
+     * Blend with another color.
+     *
+     * @param array<string, int>|string|Color $other
+     * @param float $ratio
+     *
+     * @return array<string, int>
      */
-    public function blendWith(Color|array $other, float $ratio = 0.5): array
+    public function blendWith(array|string|Color $other, float $ratio = 0.5): array
     {
         $rgb1 = $this->toRgb();
         $rgb2 = $other instanceof Color ? $other->toRgb() : $other;
@@ -310,31 +351,33 @@ enum Color: int
         return [
             'r' => (int) round($rgb1['r'] * (1 - $ratio) + $rgb2['r'] * $ratio),
             'g' => (int) round($rgb1['g'] * (1 - $ratio) + $rgb2['g'] * $ratio),
-            'b' => (int) round($rgb1['b'] * (1 - $ratio) + $rgb2['b'] * $ratio)
+            'b' => (int) round($rgb1['b'] * (1 - $ratio) + $rgb2['b'] * $ratio),
         ];
     }
 
     /**
-     * Get contrasting color (black or white) for readability
+     * Get contrasting color (black or white) for readability.
      */
     public function getContrasting(): Color
     {
         $rgb = $this->toRgb();
         $brightness = ($rgb['r'] * 299 + $rgb['g'] * 587 + $rgb['b'] * 114) / 1000;
+
         return $brightness > 128 ? self::BLACK : self::WHITE;
     }
 
     /**
-     * Get color brightness (0-255)
+     * Get color brightness (0-255).
      */
     public function getBrightness(): int
     {
         $rgb = $this->toRgb();
+
         return (int) round(($rgb['r'] * 299 + $rgb['g'] * 587 + $rgb['b'] * 114) / 1000);
     }
 
     /**
-     * Check if color is dark
+     * Check if color is dark.
      */
     public function isDark(): bool
     {
@@ -342,7 +385,7 @@ enum Color: int
     }
 
     /**
-     * Check if color is light
+     * Check if color is light.
      */
     public function isLight(): bool
     {
@@ -354,75 +397,103 @@ enum Color: int
     // =========================================================================
 
     /**
-     * Get RGB color array from R, G, B values
+     * Get RGB color array from R, G, B values.
+     *
+     * @param int $r
+     * @param int $g
+     * @param int $b
+     *
+     * @return array<string, int>
      */
     public static function getRgbColor(int $r, int $g, int $b): array
     {
         return [
             'r' => max(0, min(255, $r)),
             'g' => max(0, min(255, $g)),
-            'b' => max(0, min(255, $b))
+            'b' => max(0, min(255, $b)),
         ];
     }
 
     /**
-     * Get hex color string from R, G, B values
+     * Get hex color string from R, G, B values.
      */
     public static function getHexColor(int $r, int $g, int $b): string
     {
-        return sprintf('#%02x%02x%02x', $r, $g, $b);
+        return \sprintf('#%02x%02x%02x', $r, $g, $b);
     }
 
     /**
-     * Get RGB color from hex string
+     * Get RGB color from hex string.
+     *
+     * @param string $hex
+     *
+     * @return array<string, int>
      */
     public static function hexToRgb(string $hex): array
     {
         $hex = ltrim($hex, '#');
 
-        if (strlen($hex) === 3) {
+        if (\strlen($hex) === 3) {
             $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
         }
 
-        if (strlen($hex) !== 6) {
+        if (\strlen($hex) !== 6) {
             throw new \InvalidArgumentException('Invalid hex color format');
         }
 
         return [
             'r' => hexdec(substr($hex, 0, 2)),
             'g' => hexdec(substr($hex, 2, 2)),
-            'b' => hexdec(substr($hex, 4, 2))
+            'b' => hexdec(substr($hex, 4, 2)),
         ];
     }
 
     /**
-     * Lighten a color by percentage
+     * Lighten a color by percentage.
+     *
+     * @param array<string, int> $color
+     * @param float $percentage
+     *
+     * @return array<string, int>
      */
     public static function lightenColor(array $color, float $percentage): array
     {
         $percentage = max(0, min(1, $percentage));
+
         return [
             'r' => min(255, (int) round($color['r'] + (255 - $color['r']) * $percentage)),
             'g' => min(255, (int) round($color['g'] + (255 - $color['g']) * $percentage)),
-            'b' => min(255, (int) round($color['b'] + (255 - $color['b']) * $percentage))
+            'b' => min(255, (int) round($color['b'] + (255 - $color['b']) * $percentage)),
         ];
     }
 
     /**
-     * Darken a color by percentage
+     * Darken a color by percentage.
+     *
+     * @param array<string, int> $color
+     * @param float $percentage
+     *
+     * @return array<string, int>
      */
     public static function darkenColor(array $color, float $percentage): array
     {
         $percentage = max(0, min(1, $percentage));
+
         return [
             'r' => max(0, (int) round($color['r'] * (1 - $percentage))),
             'g' => max(0, (int) round($color['g'] * (1 - $percentage))),
-            'b' => max(0, (int) round($color['b'] * (1 - $percentage)))
+            'b' => max(0, (int) round($color['b'] * (1 - $percentage))),
         ];
     }
 
     /**
-     * Blend two colors together
+     * Blend two colors together.
+     *
+     * @param array<string, int> $color1
+     * @param array<string, int> $color2
+     * @param float $ratio
+     *
+     * @return array<string, int>
      */
     public static function blendColors(array $color1, array $color2, float $ratio = 0.5): array
     {
@@ -431,21 +502,28 @@ enum Color: int
         return [
             'r' => (int) round($color1['r'] * (1 - $ratio) + $color2['r'] * $ratio),
             'g' => (int) round($color1['g'] * (1 - $ratio) + $color2['g'] * $ratio),
-            'b' => (int) round($color1['b'] * (1 - $ratio) + $color2['b'] * $ratio)
+            'b' => (int) round($color1['b'] * (1 - $ratio) + $color2['b'] * $ratio),
         ];
     }
 
     /**
-     * Get contrasting color (black or white) for readability
+     * Get contrasting color (black or white) for readability.
+     *
+     * @param array<string, int> $color
+     *
+     * @return array<string, int>
      */
     public static function getContrastingColor(array $color): array
     {
         $brightness = ($color['r'] * 299 + $color['g'] * 587 + $color['b'] * 114) / 1000;
+
         return $brightness > 128 ? self::RGB_BLACK : self::RGB_WHITE;
     }
 
     /**
-     * Get color brightness
+     * Get color brightness.
+     *
+     * @param array<string, int> $color RGB color array
      */
     public static function getColorBrightness(array $color): int
     {
@@ -453,7 +531,9 @@ enum Color: int
     }
 
     /**
-     * Check if color is dark
+     * Check if color is dark.
+     *
+     * @param array<string, int> $color RGB color array
      */
     public static function isColorDark(array $color): bool
     {
@@ -461,7 +541,9 @@ enum Color: int
     }
 
     /**
-     * Check if color is light
+     * Check if color is light.
+     *
+     * @param array<string, int> $color RGB color array
      */
     public static function isColorLight(array $color): bool
     {
@@ -473,7 +555,11 @@ enum Color: int
     // =========================================================================
 
     /**
-     * Get color palette by name
+     * Get color palette by name.
+     *
+     * @param string $paletteName
+     *
+     * @return array<int, array<string, int>>
      */
     public static function getPalette(string $paletteName): array
     {
@@ -488,7 +574,11 @@ enum Color: int
     }
 
     /**
-     * Get random color from palette
+     * Get random color from palette.
+     *
+     * @param array<int, array<string, int>> $palette
+     *
+     * @return array<string, int>
      */
     public static function getRandomPaletteColor(array $palette): array
     {
@@ -496,7 +586,13 @@ enum Color: int
     }
 
     /**
-     * Create gradient between two colors
+     * Create gradient between two colors.
+     *
+     * @param array<string, int> $startColor
+     * @param array<string, int> $endColor
+     * @param int $steps
+     *
+     * @return array<int, array<string, int>>
      */
     public static function createGradient(array $startColor, array $endColor, int $steps): array
     {
@@ -510,7 +606,7 @@ enum Color: int
             $gradient[] = [
                 'r' => (int) round($startColor['r'] * (1 - $ratio) + $endColor['r'] * $ratio),
                 'g' => (int) round($startColor['g'] * (1 - $ratio) + $endColor['g'] * $ratio),
-                'b' => (int) round($startColor['b'] * (1 - $ratio) + $endColor['b'] * $ratio)
+                'b' => (int) round($startColor['b'] * (1 - $ratio) + $endColor['b'] * $ratio),
             ];
         }
 
@@ -518,7 +614,9 @@ enum Color: int
     }
 
     /**
-     * Get color name from RGB values
+     * Get color name from RGB values.
+     *
+     * @param array<string, int> $color RGB color array
      */
     public static function getColorName(array $color): string
     {
@@ -548,9 +646,9 @@ enum Color: int
 
         foreach ($knownColors as $name => $rgb) {
             $distance = sqrt(
-                pow($color['r'] - $rgb['r'], 2) +
-                pow($color['g'] - $rgb['g'], 2) +
-                pow($color['b'] - $rgb['b'], 2)
+                ($color['r'] - $rgb['r']) ** 2 +
+                ($color['g'] - $rgb['g']) ** 2 +
+                ($color['b'] - $rgb['b']) ** 2,
             );
             $distances[$name] = $distance;
         }
@@ -559,11 +657,13 @@ enum Color: int
         $closest = array_key_first($distances);
 
         // If very close, return the name, otherwise return RGB notation
-        return $distances[$closest] < 50 ? $closest : sprintf('RGB(%d,%d,%d)', $color['r'], $color['g'], $color['b']);
+        return $distances[$closest] < 50 ? $closest : \sprintf('RGB(%d,%d,%d)', $color['r'], $color['g'], $color['b']);
     }
 
     /**
-     * Get all RGB colors
+     * Get all RGB colors.
+     *
+     * @return array<string, array<string, int>>
      */
     public static function getAllRgbColors(): array
     {
@@ -597,7 +697,9 @@ enum Color: int
     }
 
     /**
-     * Get all palettes
+     * Get all palettes.
+     *
+     * @return array<string, array<int, array<string, int>>>
      */
     public static function getAllPalettes(): array
     {
@@ -611,7 +713,9 @@ enum Color: int
     }
 
     /**
-     * Get all available colors
+     * Get all available colors.
+     *
+     * @return array<int, Color>
      */
     public static function getAllColors(): array
     {
@@ -632,9 +736,13 @@ enum Color: int
     // =========================================================================
 
     /**
-     * Helper method to convert hex string to Color or RGB array
+     * Helper method to convert hex string to Color or RGB array.
+     *
+     * @param string $hex
+     *
+     * @return array<string, int>|Color
      */
-    private static function fromHexString(string $hex): Color|array
+    private static function fromHexString(string $hex): array|Color
     {
         $rgb = self::hexToRgb($hex);
 
@@ -649,33 +757,39 @@ enum Color: int
     }
 
     /**
-     * Helper method to match RGB values to existing Color enum
+     * Helper method to match RGB values to existing Color enum.
+     *
+     * @param int $r
+     * @param int $g
+     * @param int $b
+     *
+     * @return Color|null
      */
     private static function fromRgbMatch(int $r, int $g, int $b): ?Color
     {
         // Exact matches for basic colors
-        if ($r == 0 && $g == 0 && $b == 0) {
+        if ($r === 0 && $g === 0 && $b === 0) {
             return self::BLACK;
         }
-        if ($r == 255 && $g == 255 && $b == 255) {
+        if ($r === 255 && $g === 255 && $b === 255) {
             return self::WHITE;
         }
-        if ($r == 255 && $g == 0 && $b == 0) {
+        if ($r === 255 && $g === 0 && $b === 0) {
             return self::RED;
         }
-        if ($r == 0 && $g == 255 && $b == 0) {
+        if ($r === 0 && $g === 255 && $b === 0) {
             return self::GREEN;
         }
-        if ($r == 0 && $g == 0 && $b == 255) {
+        if ($r === 0 && $g === 0 && $b === 255) {
             return self::BLUE;
         }
-        if ($r == 255 && $g == 255 && $b == 0) {
+        if ($r === 255 && $g === 255 && $b === 0) {
             return self::YELLOW;
         }
-        if ($r == 255 && $g == 0 && $b == 255) {
+        if ($r === 255 && $g === 0 && $b === 255) {
             return self::MAGENTA;
         }
-        if ($r == 0 && $g == 255 && $b == 255) {
+        if ($r === 0 && $g === 255 && $b === 255) {
             return self::CYAN;
         }
 

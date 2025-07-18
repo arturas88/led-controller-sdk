@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Font style enumeration
+ * Font style enumeration.
  */
 enum FontStyle: int
 {
@@ -17,7 +19,7 @@ enum FontStyle: int
     case STYLE_7 = 7;
 
     /**
-     * Get style name
+     * Get style name.
      */
     public function getName(): string
     {
@@ -34,7 +36,7 @@ enum FontStyle: int
     }
 
     /**
-     * Get default style
+     * Get default style.
      */
     public static function default(): self
     {
@@ -42,7 +44,9 @@ enum FontStyle: int
     }
 
     /**
-     * Get all available styles
+     * Get all available styles.
+     *
+     * @return array<int, self> Array of all available font styles
      */
     public static function getAllStyles(): array
     {

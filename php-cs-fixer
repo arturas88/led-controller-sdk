@@ -1,0 +1,6 @@
+Script started on Thu Jul 17 17:00:23 2025
+Command: fix --config=.php-cs-fixer.php handling the cs:fix event returned with error code 255
+Script: fix: No such file or directory
+
+Command exit status: 1
+Script done on Thu Jul 17 17:00:23 2025

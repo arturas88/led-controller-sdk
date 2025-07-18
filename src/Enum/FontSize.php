@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Font size enumeration
+ * Font size enumeration.
  */
 enum FontSize: int
 {
@@ -17,7 +19,7 @@ enum FontSize: int
     case FONT_56 = 7;
 
     /**
-     * Get font size in pixels
+     * Get font size in pixels.
      */
     public function getPixelSize(): int
     {
@@ -34,7 +36,7 @@ enum FontSize: int
     }
 
     /**
-     * Get font size from pixel size
+     * Get font size from pixel size.
      */
     public static function fromPixelSize(int $pixels): self
     {
@@ -52,7 +54,9 @@ enum FontSize: int
     }
 
     /**
-     * Get all available font sizes
+     * Get all available font sizes.
+     *
+     * @return array<int, int> Array of all available font sizes in pixels
      */
     public static function getAllSizes(): array
     {
@@ -69,7 +73,7 @@ enum FontSize: int
     }
 
     /**
-     * Get font size by code (for backward compatibility)
+     * Get font size by code (for backward compatibility).
      */
     public static function getFontSize(int $fontCode): int
     {

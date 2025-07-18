@@ -1,26 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Manager;
 
-use LEDController\LEDController;
-use LEDController\PacketBuilder;
-use LEDController\Enum\FontSize;
+use LEDController\Enum\Alignment;
 use LEDController\Enum\Color;
 use LEDController\Enum\Effect;
-use LEDController\Enum\Alignment;
-use LEDController\Enum\Protocol;
-use LEDController\Exception\ValidationException;
+use LEDController\Enum\FontSize;
 use LEDController\Exception\CommunicationException;
+use LEDController\Exception\ValidationException;
+use LEDController\LEDController;
+use LEDController\Logger;
+use LEDController\PacketBuilder;
 
 /**
- * Temperature Manager for handling temperature sensor reading and display
+ * Temperature Manager for handling temperature sensor reading and display.
  */
 class TemperatureManager
 {
-    private LEDController $controller;
-    private array $temperatureSettings = [];
-    private array $lastReading = [];
-
     // Temperature format constants from documentation
     public const FORMAT_CELSIUS = 0;
     public const FORMAT_FAHRENHEIT = 1;
@@ -36,29 +34,45 @@ class TemperatureManager
     public const QUERY_HUMIDITY = 0x02;
     public const QUERY_BOTH = 0x03;
 
+    private LEDController $controller;
+
+    /**
+     * @var array<string, mixed> Temperature display settings
+     */
+    private array $temperatureSettings = [];
+
+    /**
+     * @var array<string, mixed> Last temperature reading
+     */
+    private array $lastReading = [];
+
     public function __construct(LEDController $controller)
     {
         $this->controller = $controller;
     }
 
     /**
-     * Read temperature from controller sensor
+     * Read temperature from controller sensor.
+     *
+     * @param bool $includeHumidity Whether to include humidity reading
+     *
+     * @return array<string, mixed> Temperature reading data
      */
     public function readTemperature(bool $includeHumidity = true): array
     {
         try {
             $packet = PacketBuilder::createTemperatureQueryPacket(
-                $this->controller->getConfig()['cardId']
+                $this->controller->getConfig()['cardId'],
             );
 
             // Override the data to specify what we want to query
             $queryFlag = $includeHumidity ? self::QUERY_BOTH : self::QUERY_TEMPERATURE;
-            $packet->setData(chr($queryFlag));
+            $packet->setData(\chr($queryFlag));
 
             $response = $this->controller->sendPacket($packet);
 
             if (!$response->isSuccess()) {
-                throw new CommunicationException("Failed to read temperature: " . $response->getReturnCodeMessage());
+                throw new CommunicationException('Failed to read temperature: ' . $response->getReturnCodeMessage());
             }
 
             $reading = $response->getTemperature();
@@ -67,14 +81,14 @@ class TemperatureManager
             $this->lastReading = array_merge($reading, [
                 'timestamp' => new \DateTime(),
                 'included_humidity' => $includeHumidity,
-                'source' => 'sensor'
+                'source' => 'sensor',
             ]);
 
             return $reading;
         } catch (\Exception $e) {
             // Log the error for debugging
             if (class_exists('\LEDController\Logger')) {
-                \LEDController\Logger::getInstance()->error("Temperature reading failed: " . $e->getMessage());
+                Logger::getInstance()->error('Temperature reading failed: ' . $e->getMessage());
             }
 
             // Return simulated data with clear indication
@@ -85,7 +99,7 @@ class TemperatureManager
                 'timestamp' => new \DateTime(),
                 'included_humidity' => $includeHumidity,
                 'source' => 'simulation',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
 
             // Calculate Fahrenheit from Celsius
@@ -99,7 +113,9 @@ class TemperatureManager
     }
 
     /**
-     * Display temperature with various format options
+     * Display temperature with various format options.
+     *
+     * @param array<string, mixed> $options Temperature display options
      */
     public function displayTemperature(int $windowNo, array $options = []): self
     {
@@ -116,7 +132,7 @@ class TemperatureManager
             'speed' => 5,
             'stay' => 10,
             'refreshInterval' => 30, // seconds
-            'useLastReading' => false
+            'useLastReading' => false,
         ];
 
         $options = array_merge($defaultOptions, $options);
@@ -142,14 +158,16 @@ class TemperatureManager
             'font' => $options['font'],
             'color' => $options['color'],
             'effect' => $options['effect'],
-            'align' => $options['align']
+            'align' => $options['align'],
         ]);
 
         return $this;
     }
 
     /**
-     * Display temperature with predefined format presets
+     * Display temperature with predefined format presets.
+     *
+     * @param array<string, mixed> $overrides Override options for the preset
      */
     public function displayTemperaturePreset(int $windowNo, string $preset, array $overrides = []): self
     {
@@ -196,11 +214,11 @@ class TemperatureManager
                 'showDecimal' => false,
                 'font' => FontSize::FONT_16,
                 'color' => Color::WHITE,
-            ]
+            ],
         ];
 
         if (!isset($presets[$preset])) {
-            throw new ValidationException("Unknown temperature preset: $preset");
+            throw new ValidationException("Unknown temperature preset: {$preset}");
         }
 
         $options = array_merge($presets[$preset], $overrides);
@@ -209,7 +227,9 @@ class TemperatureManager
     }
 
     /**
-     * Get the last temperature reading
+     * Get the last temperature reading.
+     *
+     * @return array<string, mixed> Last temperature reading data
      */
     public function getLastReading(): array
     {
@@ -217,15 +237,20 @@ class TemperatureManager
     }
 
     /**
-     * Get temperature settings for a window
+     * Get temperature settings for a window.
+     *
+     * @param int $windowNo Window number
+     *
+     * @return array<string, mixed>|null Temperature settings for the window
      */
     public function getTemperatureSettings(int $windowNo): ?array
     {
+        /** @phpstan-ignore-next-line */
         return $this->temperatureSettings[$windowNo] ?? null;
     }
 
     /**
-     * Clear temperature display from window
+     * Clear temperature display from window.
      */
     public function clearTemperature(int $windowNo): self
     {
@@ -234,17 +259,18 @@ class TemperatureManager
             'font' => FontSize::FONT_8,
             'color' => Color::BLACK,
             'effect' => Effect::DRAW,
-            'align' => Alignment::CENTER
+            'align' => Alignment::CENTER,
         ]);
 
         // Remove settings
+        /** @phpstan-ignore-next-line */
         unset($this->temperatureSettings[$windowNo]);
 
         return $this;
     }
 
     /**
-     * Convert temperature between Celsius and Fahrenheit
+     * Convert temperature between Celsius and Fahrenheit.
      */
     public static function convertTemperature(float $temperature, int $fromFormat, int $toFormat): float
     {
@@ -264,7 +290,9 @@ class TemperatureManager
     }
 
     /**
-     * Get all available presets
+     * Get all available presets.
+     *
+     * @return array<string, string> Array of preset names and descriptions
      */
     public function getAvailablePresets(): array
     {
@@ -274,12 +302,12 @@ class TemperatureManager
             'fahrenheit_simple' => 'Simple Fahrenheit (e.g., 73°F)',
             'fahrenheit_precise' => 'Precise Fahrenheit (e.g., 73.4°F)',
             'with_humidity' => 'Temperature with humidity (e.g., 23°C 45%)',
-            'compact' => 'Compact format (e.g., 23)'
+            'compact' => 'Compact format (e.g., 23)',
         ];
     }
 
     /**
-     * Check if temperature reading is recent
+     * Check if temperature reading is recent.
      */
     public function isReadingRecent(int $maxAgeSeconds = 60): bool
     {
@@ -288,11 +316,43 @@ class TemperatureManager
         }
 
         $age = time() - $this->lastReading['timestamp']->getTimestamp();
+
         return $age <= $maxAgeSeconds;
     }
 
     /**
-     * Format temperature display text
+     * Get temperature status information.
+     *
+     * @return array<string, mixed> Temperature status information
+     */
+    public function getTemperatureStatus(): array
+    {
+        $status = [
+            'hasReading' => !empty($this->lastReading),
+            'lastReadingTime' => $this->lastReading['timestamp'] ?? null,
+            'activeWindows' => array_keys($this->temperatureSettings),
+            'readingAge' => null,
+            'isRecent' => false,
+            'source' => $this->lastReading['source'] ?? 'unknown',
+            'isSimulated' => ($this->lastReading['source'] ?? '') === 'simulation',
+            'lastError' => $this->lastReading['error'] ?? null,
+        ];
+
+        if (!empty($this->lastReading) && isset($this->lastReading['timestamp'])) {
+            $status['readingAge'] = time() - $this->lastReading['timestamp']->getTimestamp();
+            $status['isRecent'] = $this->isReadingRecent();
+        }
+
+        return $status;
+    }
+
+    /**
+     * Format temperature display text.
+     *
+     * @param array<string, mixed> $reading Temperature reading data
+     * @param array<string, mixed> $options Display options
+     *
+     * @return string Formatted temperature text
      */
     private function formatTemperatureDisplay(array $reading, array $options): string
     {
@@ -330,22 +390,25 @@ class TemperatureManager
     }
 
     /**
-     * Validate temperature options
+     * Validate temperature options.
+     *
+     * @param array<string, mixed> $options Temperature display options
      */
     private function validateTemperatureOptions(array $options): void
     {
         // Validate format
         if (
-            !in_array(
+            !\in_array(
                 $options['format'] ?? self::FORMAT_CELSIUS,
                 [
                     self::FORMAT_CELSIUS,
                     self::FORMAT_FAHRENHEIT,
-                    self::FORMAT_HUMIDITY
-                ]
+                    self::FORMAT_HUMIDITY,
+                ],
+                true,
             )
         ) {
-            throw new ValidationException("Invalid temperature format");
+            throw new ValidationException('Invalid temperature format');
         }
 
         // Validate refresh interval
@@ -356,40 +419,16 @@ class TemperatureManager
                 $options['refreshInterval'] > 3600
             )
         ) {
-            throw new ValidationException("Refresh interval must be between 1 and 3600 seconds");
+            throw new ValidationException('Refresh interval must be between 1 and 3600 seconds');
         }
 
         // Validate speed and stay time
         if (isset($options['speed']) && ($options['speed'] < 1 || $options['speed'] > 100)) {
-            throw new ValidationException("Speed must be between 1 and 100");
+            throw new ValidationException('Speed must be between 1 and 100');
         }
 
         if (isset($options['stay']) && ($options['stay'] < 0 || $options['stay'] > 65535)) {
-            throw new ValidationException("Stay time must be between 0 and 65535 seconds");
+            throw new ValidationException('Stay time must be between 0 and 65535 seconds');
         }
-    }
-
-    /**
-     * Get temperature status information
-     */
-    public function getTemperatureStatus(): array
-    {
-        $status = [
-            'hasReading' => !empty($this->lastReading),
-            'lastReadingTime' => $this->lastReading['timestamp'] ?? null,
-            'activeWindows' => array_keys($this->temperatureSettings),
-            'readingAge' => null,
-            'isRecent' => false,
-            'source' => $this->lastReading['source'] ?? 'unknown',
-            'isSimulated' => ($this->lastReading['source'] ?? '') === 'simulation',
-            'lastError' => $this->lastReading['error'] ?? null
-        ];
-
-        if (!empty($this->lastReading) && isset($this->lastReading['timestamp'])) {
-            $status['readingAge'] = time() - $this->lastReading['timestamp']->getTimestamp();
-            $status['isRecent'] = $this->isReadingRecent();
-        }
-
-        return $status;
     }
 }

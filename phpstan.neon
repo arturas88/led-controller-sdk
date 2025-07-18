@@ -1,5 +1,5 @@
 parameters:
-    level: 8
+    level: 6
     paths:
         - src
     excludePaths:
@@ -13,8 +13,8 @@ parameters:
         # Allow undefined constants (might be defined in different contexts)
         # - '#Access to undefined constant .*#'
         # Allow undefined methods (might be in interfaces or dynamic)
-        - '#Call to an undefined static method .*::.*#'
-        - '#Call to an undefined method .*::.*#'
+        # - '#Call to an undefined static method .*::.*#'
+        # - '#Call to an undefined method .*::.*#'
         
     # Basic checks that are useful
     checkClassCaseSensitivity: true

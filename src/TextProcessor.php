@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController;
 
-use LEDController\Enum\TextProcessorMode;
 use LEDController\Enum\Color;
+use LEDController\Enum\TextProcessorMode;
 
 /**
- * Simplified Text Processor for LED Controllers
+ * Simplified Text Processor for LED Controllers.
  *
  * Processes text with explicit modes only - no automatic guessing or analysis.
  * Now modernized with PHP 8.1+ enums and match expressions.
@@ -14,12 +16,23 @@ use LEDController\Enum\Color;
 class TextProcessor
 {
     // Legacy constants for backward compatibility
-    const MODE_TEXT = 'text';
-    const MODE_TRANSLITERATE = 'transliterate';
-    const MODE_TO_IMAGE = 'to_image';
+    public const MODE_TEXT = 'text';
+    public const MODE_TRANSLITERATE = 'transliterate';
+    public const MODE_TO_IMAGE = 'to_image';
 
-    private readonly array $config;
+    /**
+     * @var array<int, string> Processed text lines
+     */
+    private array $processedText = [];
 
+    /**
+     * @var array<string, mixed> Text processor configuration
+     */
+    private array $config = [];
+
+    /**
+     * @param array<string, mixed> $config Text processor configuration
+     */
     public function __construct(array $config = [])
     {
         $this->config = array_merge([
@@ -29,12 +42,16 @@ class TextProcessor
             'font_size' => 16,
             'font_path' => null,
             'color' => [255, 255, 255],
-            'background_color' => [0, 0, 0]
+            'background_color' => [0, 0, 0],
         ], $config);
     }
 
     /**
-     * Process text with specified mode (using modern enum)
+     * Process text with specified mode (using modern enum).
+     *
+     * @param array<string, mixed> $options Processing options
+     *
+     * @return array<string, mixed> Processing result
      */
     public function processText(string $text, array $options = []): array
     {
@@ -42,10 +59,10 @@ class TextProcessor
         $mode = $options['mode'] ?? TextProcessorMode::TEXT->value;
 
         // Handle enum or string mode
-        if (is_string($mode)) {
+        if (\is_string($mode)) {
             $enumMode = TextProcessorMode::tryFrom($mode);
             if ($enumMode === null) {
-                throw new \InvalidArgumentException("Unknown processing mode: $mode. Use TextProcessorMode enum values.");
+                throw new \InvalidArgumentException("Unknown processing mode: {$mode}. Use TextProcessorMode enum values.");
             }
             $mode = $enumMode;
         }
@@ -54,30 +71,34 @@ class TextProcessor
             TextProcessorMode::TEXT => [
                 'type' => 'text',
                 'content' => $text,
-                'method' => 'text'
+                'method' => 'text',
             ],
             TextProcessorMode::TRANSLITERATE => [
                 'type' => 'text',
                 'content' => self::transliterateText($text),
                 'method' => 'transliterate',
-                'original_text' => $text
+                'original_text' => $text,
             ],
             TextProcessorMode::TO_IMAGE => [
                 'type' => 'image',
                 'content' => self::renderTextToImage($text, $options),
                 'method' => 'to_image',
-                'image_dimensions' => ['width' => $options['width'], 'height' => $options['height']]
+                'image_dimensions' => ['width' => $options['width'], 'height' => $options['height']],
             ],
             default => [
                 'type' => 'text',
                 'content' => $text,
-                'method' => 'text'
+                'method' => 'text',
             ],
         };
     }
 
     /**
-     * Process text with enum mode (modern approach)
+     * Process text with enum mode (modern approach).
+     *
+     * @param array<string, mixed> $options Processing options
+     *
+     * @return array<string, mixed> Processing result
      */
     public function processTextWithMode(string $text, TextProcessorMode $mode, array $options = []): array
     {
@@ -87,25 +108,27 @@ class TextProcessor
             TextProcessorMode::TEXT => [
                 'type' => 'text',
                 'content' => $text,
-                'method' => 'text'
+                'method' => 'text',
             ],
             TextProcessorMode::TRANSLITERATE => [
                 'type' => 'text',
                 'content' => self::transliterateText($text),
                 'method' => 'transliterate',
-                'original_text' => $text
+                'original_text' => $text,
             ],
             TextProcessorMode::TO_IMAGE => [
                 'type' => 'image',
                 'content' => self::renderTextToImage($text, $options),
                 'method' => 'to_image',
-                'image_dimensions' => ['width' => $options['width'], 'height' => $options['height']]
+                'image_dimensions' => ['width' => $options['width'], 'height' => $options['height']],
             ],
         };
     }
 
     /**
-     * Transliterate text to ASCII
+     * Transliterate text to ASCII.
+     *
+     * @param array<string, mixed> $options Transliteration options
      */
     public static function transliterateText(string $text, array $options = []): string
     {
@@ -130,7 +153,9 @@ class TextProcessor
     }
 
     /**
-     * Render text to image
+     * Render text to image.
+     *
+     * @param array<string, mixed> $options Rendering options
      */
     public static function renderTextToImage(string $text, array $options = []): string
     {
@@ -184,20 +209,50 @@ class TextProcessor
     }
 
     /**
-     * Get default font path
+     * Get default mode.
+     */
+    public static function getDefaultMode(): TextProcessorMode
+    {
+        return TextProcessorMode::TEXT;
+    }
+
+    /**
+     * Check if mode is available.
+     */
+    public static function isModeAvailable(string|TextProcessorMode $mode): bool
+    {
+        if ($mode instanceof TextProcessorMode) {
+            return true;
+        }
+
+        return TextProcessorMode::tryFrom($mode) !== null;
+    }
+
+    /**
+     * Get all available modes.
+     *
+     * @return array<int, TextProcessorMode> Available processing modes
+     */
+    public static function getAvailableModes(): array
+    {
+        return TextProcessorMode::cases();
+    }
+
+    /**
+     * Get default font path.
      */
     private static function getDefaultFontPath(): string
     {
         // Look for system fonts
         $fontPaths = [
-            dirname(__DIR__) . '/fonts/NotoSans-Regular.ttf',
-            dirname(__DIR__) . '/fonts/RobotoSlab-Regular.ttf',
+            \dirname(__DIR__) . '/fonts/NotoSans-Regular.ttf',
+            \dirname(__DIR__) . '/fonts/RobotoSlab-Regular.ttf',
             '/System/Library/Fonts/Arial.ttf',
             '/System/Library/Fonts/Helvetica.ttc',
             '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
             '/usr/share/fonts/TTF/arial.ttf',
-            'C:\\Windows\\Fonts\\arial.ttf',
-            'C:\\Windows\\Fonts\\calibri.ttf',
+            'C:\Windows\Fonts\arial.ttf',
+            'C:\Windows\Fonts\calibri.ttf',
         ];
 
         foreach ($fontPaths as $path) {
@@ -210,7 +265,9 @@ class TextProcessor
     }
 
     /**
-     * Render text to image using built-in fonts
+     * Render text to image using built-in fonts.
+     *
+     * @param array<string, mixed> $options Rendering options
      */
     private static function renderTextToImageBuiltin(string $text, array $options = []): string
     {
@@ -233,7 +290,7 @@ class TextProcessor
 
         // Use built-in font (font 5 is largest built-in font)
         $font = 5;
-        $textWidth = imagefontwidth($font) * strlen($text);
+        $textWidth = imagefontwidth($font) * \strlen($text);
         $textHeight = imagefontheight($font);
 
         $x = (int)(($width - $textWidth) / 2);
@@ -252,7 +309,9 @@ class TextProcessor
     }
 
     /**
-     * Convert image to LED controller format
+     * Convert image to LED controller format.
+     *
+     * @param mixed $image
      */
     private static function convertToLEDFormat($image, int $width, int $height): string
     {
@@ -268,9 +327,9 @@ class TextProcessor
                 $rgb = imagecolorsforindex($image, $colorIndex);
 
                 // Convert to LED controller format (this is controller-specific)
-                $r = intval($rgb['red'] / 8);   // 5-bit red
-                $g = intval($rgb['green'] / 4); // 6-bit green
-                $b = intval($rgb['blue'] / 8);  // 5-bit blue
+                $r = (int) ($rgb['red'] / 8);   // 5-bit red
+                $g = (int) ($rgb['green'] / 4); // 6-bit green
+                $b = (int) ($rgb['blue'] / 8);  // 5-bit blue
 
                 // Pack into 16-bit RGB565 format
                 $pixel = ($r << 11) | ($g << 5) | $b;
@@ -282,30 +341,12 @@ class TextProcessor
     }
 
     /**
-     * Get default mode
+     * Get processed text.
+     *
+     * @return array<int, string> Processed text lines
      */
-    public static function getDefaultMode(): TextProcessorMode
+    public function getProcessedText(): array
     {
-        return TextProcessorMode::TEXT;
-    }
-
-    /**
-     * Check if mode is available
-     */
-    public static function isModeAvailable(TextProcessorMode|string $mode): bool
-    {
-        if ($mode instanceof TextProcessorMode) {
-            return true;
-        }
-
-        return TextProcessorMode::tryFrom($mode) !== null;
-    }
-
-    /**
-     * Get all available modes
-     */
-    public static function getAvailableModes(): array
-    {
-        return TextProcessorMode::cases();
+        return $this->processedText;
     }
 }

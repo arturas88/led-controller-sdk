@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Exception;
 
 /**
- * Base exception class for all LED Controller SDK exceptions
+ * Base exception class for all LED Controller SDK exceptions.
  */
 abstract class LEDControllerException extends \Exception
 {

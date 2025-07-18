@@ -1,23 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Manager;
 
+use LEDController\Enum\Command;
+use LEDController\Enum\Effect;
+use LEDController\Exception\ExternalCallsException;
 use LEDController\LEDController;
 use LEDController\Packet;
-use LEDController\Exception\ExternalCallsException;
-use LEDController\Enum\Effect;
-use LEDController\Enum\Alignment;
-use LEDController\Enum\Command;
 
 /**
- * External Calls Manager for protocol command 0x7B
+ * External Calls Manager for protocol command 0x7B.
  */
 class ExternalCallsManager
 {
     private LEDController $controller;
+
+    /**
+     * @var array<string, mixed> External variables
+     */
     private array $variables = [];
+
+    /**
+     * @var array<string, mixed> Timer variables
+     */
     private array $timers = [];
+
     private bool $splitScreenMode = false;
+
+    /**
+     * @var array<int, array<string, mixed>> Current window configurations
+     */
     private array $currentWindows = [];
 
     public function __construct(LEDController $controller)
@@ -26,14 +40,16 @@ class ExternalCallsManager
     }
 
     /**
-     * Split screen into multiple windows
+     * Split screen into multiple windows.
+     *
+     * @param array<int, array<string, mixed>> $windows Window configurations
      */
     public function splitScreen(array $windows): self
     {
         $packet = new Packet($this->controller->getConfig()['cardId'], Command::EXTERNAL_CALLS->value);
         $packet->setSubCommand(0x01); // Split screen
 
-        $data = chr(count($windows));
+        $data = \chr(\count($windows));
 
         foreach ($windows as $window) {
             $this->validateWindow($window);
@@ -48,7 +64,7 @@ class ExternalCallsManager
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new ExternalCallsException("Failed to split screen: " . $response->getReturnCodeMessage());
+            throw new ExternalCallsException('Failed to split screen: ' . $response->getReturnCodeMessage());
         }
 
         $this->splitScreenMode = true;
@@ -58,11 +74,13 @@ class ExternalCallsManager
     }
 
     /**
-     * Display text in a window - delegates to main controller method
+     * Display text in a window - delegates to main controller method.
      *
      * This method provides a convenient way to display text in specific windows
      * for split screen scenarios. It delegates to the main displayText() method
      * which is the single source of truth for text display functionality.
+     *
+     * @param array<string, mixed> $options Display options
      */
     public function displayText(int $windowId, string $text, array $options = []): self
     {
@@ -74,7 +92,9 @@ class ExternalCallsManager
     }
 
     /**
-     * Display image in a window
+     * Display image in a window.
+     *
+     * @param array<string, mixed> $options Display options
      */
     public function displayImage(int $windowId, string $imageData, array $options = []): self
     {
@@ -83,15 +103,15 @@ class ExternalCallsManager
         $packet = new Packet($this->controller->getConfig()['cardId'], Command::EXTERNAL_CALLS->value);
         $packet->setSubCommand(0x03); // Image display
 
-        $data = chr($windowId);
-        $data .= chr($this->convertEffectToInt($options['effect'] ?? Effect::DRAW));
-        $data .= chr($options['speed'] ?? 5);
+        $data = \chr($windowId);
+        $data .= \chr($this->convertEffectToInt($options['effect'] ?? Effect::DRAW));
+        $data .= \chr($options['speed'] ?? 5);
         $data .= pack('n', $options['stay'] ?? 10); // Big-endian
         $data .= pack('n', $options['x'] ?? 0); // Big-endian
         $data .= pack('n', $options['y'] ?? 0); // Big-endian
 
         // Image data
-        $data .= pack('N', strlen($imageData)); // Big-endian
+        $data .= pack('N', \strlen($imageData)); // Big-endian
         $data .= $imageData;
 
         $packet->setData($data);
@@ -99,14 +119,14 @@ class ExternalCallsManager
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new ExternalCallsException("Failed to display image: " . $response->getReturnCodeMessage());
+            throw new ExternalCallsException('Failed to display image: ' . $response->getReturnCodeMessage());
         }
 
         return $this;
     }
 
     /**
-     * Exit split screen
+     * Exit split screen.
      */
     public function exitSplitScreen(): self
     {
@@ -118,7 +138,7 @@ class ExternalCallsManager
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new ExternalCallsException("Failed to exit split screen: " . $response->getReturnCodeMessage());
+            throw new ExternalCallsException('Failed to exit split screen: ' . $response->getReturnCodeMessage());
         }
 
         $this->splitScreenMode = false;
@@ -128,35 +148,35 @@ class ExternalCallsManager
     }
 
     /**
-     * Play a program
+     * Play a program.
      */
     public function playProgram(int $programId): self
     {
         $packet = new Packet($this->controller->getConfig()['cardId'], Command::EXTERNAL_CALLS->value);
         $packet->setSubCommand(0x08); // Play program
 
-        $data = chr($programId);
+        $data = \chr($programId);
         $packet->setData($data);
 
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new ExternalCallsException("Failed to play program: " . $response->getReturnCodeMessage());
+            throw new ExternalCallsException('Failed to play program: ' . $response->getReturnCodeMessage());
         }
 
         return $this;
     }
 
     /**
-     * Set a variable
+     * Set a variable.
      */
     public function setVariable(int $variableId, string $value): self
     {
         $packet = new Packet($this->controller->getConfig()['cardId'], Command::EXTERNAL_CALLS->value);
         $packet->setSubCommand(0x10); // Set variable
 
-        $data = chr($variableId);
-        $data .= pack('n', strlen($value)); // Big-endian
+        $data = \chr($variableId);
+        $data .= pack('n', \strlen($value)); // Big-endian
         $data .= $value;
 
         $packet->setData($data);
@@ -164,7 +184,7 @@ class ExternalCallsManager
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new ExternalCallsException("Failed to set variable: " . $response->getReturnCodeMessage());
+            throw new ExternalCallsException('Failed to set variable: ' . $response->getReturnCodeMessage());
         }
 
         $this->variables[$variableId] = $value;
@@ -173,7 +193,9 @@ class ExternalCallsManager
     }
 
     /**
-     * Get current state
+     * Get current state.
+     *
+     * @return array<string, mixed> Current state information
      */
     public function getState(): array
     {
@@ -181,65 +203,67 @@ class ExternalCallsManager
             'splitScreenMode' => $this->splitScreenMode,
             'currentWindows' => $this->currentWindows,
             'variables' => $this->variables,
-            'timers' => $this->timers
+            'timers' => $this->timers,
         ];
     }
 
     /**
-     * Get display dimensions from controller configuration
+     * Get display dimensions from controller configuration.
      *
-     * @return array Display dimensions ['width' => int, 'height' => int]
+     * @return array<string, int> Display dimensions ['width' => int, 'height' => int]
      */
     public function getDisplayDimensions(): array
     {
         $config = $this->controller->getConfig();
 
         // Try to get from controller config first
-        if (isset($config['displayWidth']) && isset($config['displayHeight'])) {
+        if (isset($config['displayWidth'], $config['displayHeight'])) {
             return [
                 'width' => $config['displayWidth'],
-                'height' => $config['displayHeight']
+                'height' => $config['displayHeight'],
             ];
         }
 
         // Try to get from display config
-        if (isset($config['display']['defaultWidth']) && isset($config['display']['defaultHeight'])) {
+        if (isset($config['display']['defaultWidth'], $config['display']['defaultHeight'])) {
             return [
                 'width' => $config['display']['defaultWidth'],
-                'height' => $config['display']['defaultHeight']
+                'height' => $config['display']['defaultHeight'],
             ];
         }
 
         // Fallback to common default dimensions
         return [
             'width' => 128,
-            'height' => 32
+            'height' => 32,
         ];
     }
 
     /**
-     * Create a table layout with equally divided windows
+     * Create a table layout with equally divided windows.
      *
      * @param int $columns Number of columns in the table
      * @param int $rows Number of rows in the table
-     * @param array $displayDimensions Optional display dimensions ['width' => int, 'height' => int]
-     * @return array Array of window coordinates for splitScreen
+     * @param array<string, int>|null $displayDimensions Optional display dimensions ['width' => int, 'height' => int]
+     *
      * @throws ExternalCallsException If invalid parameters or too many windows
+     *
+     * @return array<int, array<string, int>> Array of window coordinates for splitScreen
      */
     public function createTableLayout(int $columns, int $rows, ?array $displayDimensions = null): array
     {
         // Validate input parameters
         if ($columns < 1 || $columns > 8) {
-            throw new ExternalCallsException("Columns must be between 1 and 8");
+            throw new ExternalCallsException('Columns must be between 1 and 8');
         }
 
         if ($rows < 1 || $rows > 8) {
-            throw new ExternalCallsException("Rows must be between 1 and 8");
+            throw new ExternalCallsException('Rows must be between 1 and 8');
         }
 
         $totalWindows = $columns * $rows;
         if ($totalWindows > 8) {
-            throw new ExternalCallsException("Total windows ($totalWindows) cannot exceed 8");
+            throw new ExternalCallsException("Total windows ({$totalWindows}) cannot exceed 8");
         }
 
         // Get display dimensions (use controller config if not provided)
@@ -277,7 +301,7 @@ class ExternalCallsManager
                     'x' => $x,
                     'y' => $y,
                     'width' => $actualWidth,
-                    'height' => $actualHeight
+                    'height' => $actualHeight,
                 ];
 
                 $windowId++;
@@ -288,13 +312,15 @@ class ExternalCallsManager
     }
 
     /**
-     * Create and apply a table layout with equally divided windows
+     * Create and apply a table layout with equally divided windows.
      *
      * @param int $columns Number of columns in the table
      * @param int $rows Number of rows in the table
-     * @param array $displayDimensions Optional display dimensions ['width' => int, 'height' => int]
-     * @return array Array of window coordinates that were applied
+     * @param array<string, int>|null $displayDimensions Optional display dimensions ['width' => int, 'height' => int]
+     *
      * @throws ExternalCallsException If invalid parameters or split screen fails
+     *
+     * @return array<int, array<string, int>> Array of window coordinates that were applied
      */
     public function applyTableLayout(int $columns, int $rows, ?array $displayDimensions = null): array
     {
@@ -307,27 +333,29 @@ class ExternalCallsManager
     }
 
     /**
-     * Validate window structure
+     * Validate window structure.
+     *
+     * @param array<string, mixed> $window Window configuration
      */
     private function validateWindow(array $window): void
     {
         if (!isset($window['x']) || !isset($window['y']) || !isset($window['width']) || !isset($window['height'])) {
-            throw new ExternalCallsException("Window must have x, y, width, and height");
+            throw new ExternalCallsException('Window must have x, y, width, and height');
         }
     }
 
     /**
-     * Validate window ID
+     * Validate window ID.
      */
     private function validateWindowId(int $windowId): void
     {
         if ($windowId < 0 || $windowId > 15) {
-            throw new ExternalCallsException("Window ID must be between 0 and 15");
+            throw new ExternalCallsException('Window ID must be between 0 and 15');
         }
     }
 
     /**
-     * Convert effect value to integer
+     * Convert effect value to integer.
      */
     private function convertEffectToInt(mixed $effect): int
     {

@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Text processor mode enumeration
+ * Text processor mode enumeration.
  */
 enum TextProcessorMode: string
 {
@@ -12,7 +14,7 @@ enum TextProcessorMode: string
     case TO_IMAGE = 'to_image';
 
     /**
-     * Get mode description
+     * Get mode description.
      */
     public function getDescription(): string
     {
@@ -24,7 +26,7 @@ enum TextProcessorMode: string
     }
 
     /**
-     * Get default mode
+     * Get default mode.
      */
     public static function default(): self
     {
@@ -32,7 +34,7 @@ enum TextProcessorMode: string
     }
 
     /**
-     * Check if mode produces image output
+     * Check if mode produces image output.
      */
     public function isImageMode(): bool
     {
@@ -40,7 +42,7 @@ enum TextProcessorMode: string
     }
 
     /**
-     * Check if mode produces text output
+     * Check if mode produces text output.
      */
     public function isTextMode(): bool
     {
@@ -48,7 +50,9 @@ enum TextProcessorMode: string
     }
 
     /**
-     * Get all available modes
+     * Get all available modes.
+     *
+     * @return array<int, self> Array of all available text processor modes
      */
     public static function getAllModes(): array
     {

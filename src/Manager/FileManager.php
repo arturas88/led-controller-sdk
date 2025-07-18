@@ -1,24 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Manager;
 
-use LEDController\LEDController;
-use LEDController\Interface\FileManagerInterface;
-use LEDController\PacketBuilder;
-use LEDController\Packet;
-use LEDController\Exception\FileNotFoundException;
 use LEDController\Exception\FileException;
-use LEDController\Exception\FileTransferException;
+use LEDController\Interface\FileManagerInterface;
+use LEDController\LEDController;
+use LEDController\PacketBuilder;
 
 /**
- * File manager for uploading, downloading, and managing files on the controller
+ * File manager for basic file operations on the controller.
+ *
+ * Note: This implementation only supports file deletion and disk space queries
+ * as these are the only file operations currently implemented in the protocol.
  */
 class FileManager implements FileManagerInterface
 {
     private LEDController $controller;
-    /** @var callable|null */
-    private $progressCallback = null;
-    private int $blockSize = 512; // Maximum bytes per packet
+
+    /** @var null|callable */
+    private $progressCallback;
+
     private bool $initialized = false;
 
     public function __construct(LEDController $controller)
@@ -27,7 +30,7 @@ class FileManager implements FileManagerInterface
     }
 
     /**
-     * Initialize the manager
+     * Initialize the manager.
      */
     public function initialize(): void
     {
@@ -35,7 +38,7 @@ class FileManager implements FileManagerInterface
     }
 
     /**
-     * Get the controller instance
+     * Get the controller instance.
      */
     public function getController(): LEDController
     {
@@ -43,7 +46,7 @@ class FileManager implements FileManagerInterface
     }
 
     /**
-     * Check if manager is ready for operations
+     * Check if manager is ready for operations.
      */
     public function isReady(): bool
     {
@@ -51,7 +54,7 @@ class FileManager implements FileManagerInterface
     }
 
     /**
-     * Clean up resources
+     * Clean up resources.
      */
     public function cleanup(): void
     {
@@ -60,248 +63,93 @@ class FileManager implements FileManagerInterface
     }
 
     /**
-     * Set progress callback
+     * Set progress callback.
+     *
+     * Note: Progress callbacks are not used in current implementation
+     * as only basic file operations are supported.
      */
     public function onProgress(callable $callback): self
     {
         $this->progressCallback = $callback;
+
         return $this;
     }
 
     /**
-     * Upload a file to the controller
+     * Upload a file to the controller.
+     *
+     * @throws FileException This operation is not currently supported
      */
     public function upload(string $remoteFilename, string $localPath): self
     {
-        if (!$this->isReady()) {
-            throw new FileException("FileManager not ready for operations");
-        }
-
-        if (!file_exists($localPath)) {
-            throw new FileNotFoundException("Local file not found: $localPath");
-        }
-
-        $fileData = file_get_contents($localPath);
-        if ($fileData === false) {
-            throw new FileException("Failed to read local file: $localPath");
-        }
-
-        $fileSize = strlen($fileData);
-        $fileTime = filemtime($localPath);
-
-        // Use quick upload for better performance
-        $this->quickUpload($remoteFilename, $fileData, $fileTime);
-
-        return $this;
+        throw new FileException('File upload is not currently supported. Only file deletion and disk space queries are available.');
     }
 
     /**
-     * Download a file from the controller
+     * Download a file from the controller.
+     *
+     * @throws FileException This operation is not currently supported
      */
     public function download(string $remoteFilename, string $localPath): self
     {
-        if (!$this->isReady()) {
-            throw new FileException("FileManager not ready for operations");
-        }
-
-        $this->quickDownload($remoteFilename, $localPath);
-
-        return $this;
+        throw new FileException('File download is not currently supported. Only file deletion and disk space queries are available.');
     }
 
     /**
-     * Delete a file from the controller
+     * Delete a file from the controller.
      */
     public function delete(string $filename): self
     {
         if (!$this->isReady()) {
-            throw new FileException("FileManager not ready for operations");
+            throw new FileException('FileManager not ready for operations');
         }
 
-        $packet = PacketBuilder::createDeleteFilePacket($this->controller->getConfig()['cardId'], $filename);
+        $packet = PacketBuilder::createFileRemovePacket($this->controller->getConfig()['cardId'], $filename);
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new FileException("Failed to delete file '$filename': " . $response->getReturnCodeMessage());
+            throw new FileException("Failed to delete file '{$filename}': " . $response->getReturnCodeMessage());
         }
 
         return $this;
     }
 
     /**
-     * Get available disk space
+     * Get available disk space.
      */
     public function getFreeSpace(): int
     {
         if (!$this->isReady()) {
-            throw new FileException("FileManager not ready for operations");
+            throw new FileException('FileManager not ready for operations');
         }
 
-        $packet = PacketBuilder::createGetDiskSpacePacket($this->controller->getConfig()['cardId']);
+        $packet = PacketBuilder::createDiskSpaceQueryPacket($this->controller->getConfig()['cardId']);
         $response = $this->controller->sendPacket($packet);
 
         if (!$response->isSuccess()) {
-            throw new FileException("Failed to get disk space: " . $response->getReturnCodeMessage());
+            throw new FileException('Failed to get disk space: ' . $response->getReturnCodeMessage());
         }
 
         return $response->getFreeSpace();
     }
 
     /**
-     * List files in a directory
+     * List files in a directory.
+     *
+     * @throws FileException This operation is not currently supported
      */
-    public function listFiles(string $directory = ''): array
+    public function listFiles(string $directory = '', string $pattern = '*'): array
     {
-        if (!$this->isReady()) {
-            throw new FileException("FileManager not ready for operations");
-        }
-
-        $packet = PacketBuilder::createListFilesPacket($this->controller->getConfig()['cardId'], $directory);
-        $response = $this->controller->sendPacket($packet);
-
-        if (!$response->isSuccess()) {
-            throw new FileException("Failed to list files: " . $response->getReturnCodeMessage());
-        }
-
-        return $response->getFileList();
+        throw new FileException('File listing is not currently supported. Only file deletion and disk space queries are available.');
     }
 
     /**
-     * Verify file integrity after upload
+     * Verify file integrity after upload.
+     *
+     * @throws FileException This operation is not currently supported
      */
     public function verify(string $remoteFilename, string $localPath): bool
     {
-        if (!$this->isReady()) {
-            throw new FileException("FileManager not ready for operations");
-        }
-
-        if (!file_exists($localPath)) {
-            throw new FileNotFoundException("Local file not found: $localPath");
-        }
-
-        // Get remote file info
-        $packet = PacketBuilder::createGetFileInfoPacket($this->controller->getConfig()['cardId'], $remoteFilename);
-        $response = $this->controller->sendPacket($packet);
-
-        if (!$response->isSuccess()) {
-            return false;
-        }
-
-        $localSize = filesize($localPath);
-        $remoteSize = $response->getFileSize();
-
-        return $localSize === $remoteSize;
-    }
-
-    /**
-     * Private method for quick upload
-     */
-    private function quickUpload(string $filename, string $data, int $fileTime): void
-    {
-        $fileSize = strlen($data);
-        $cardId = $this->controller->getConfig()['cardId'];
-
-        // Open file for writing
-        $packet = PacketBuilder::createOpenFilePacket($cardId, $filename, $fileSize, $fileTime);
-        $response = $this->controller->sendPacket($packet);
-
-        if (!$response->isSuccess()) {
-            throw new FileTransferException("Failed to open file for writing: " . $response->getReturnCodeMessage());
-        }
-
-        // Send data in blocks
-        $bytesRemaining = $fileSize;
-        $offset = 0;
-
-        while ($bytesRemaining > 0) {
-            $blockSize = min($this->blockSize, $bytesRemaining);
-            $blockData = substr($data, $offset, $blockSize);
-
-            $packet = PacketBuilder::createWriteFileDataPacket($cardId, $blockData);
-            $response = $this->controller->sendPacket($packet);
-
-            if (!$response->isSuccess()) {
-                throw new FileTransferException("Failed to write file block: " . $response->getReturnCodeMessage());
-            }
-
-            $offset += $blockSize;
-            $bytesRemaining -= $blockSize;
-
-            // Call progress callback if set
-            if ($this->progressCallback) {
-                $progress = ($offset / $fileSize) * 100;
-                call_user_func($this->progressCallback, $progress, $offset, $fileSize);
-            }
-        }
-
-        // Close file
-        $packet = PacketBuilder::createCloseFilePacket($cardId);
-        $response = $this->controller->sendPacket($packet);
-
-        if (!$response->isSuccess()) {
-            throw new FileTransferException("Failed to close file: " . $response->getReturnCodeMessage());
-        }
-    }
-
-    /**
-     * Private method for quick download
-     */
-    private function quickDownload(string $filename, string $localPath): void
-    {
-        $cardId = $this->controller->getConfig()['cardId'];
-
-        // Open file for reading
-        $packet = PacketBuilder::createOpenFileForReadPacket($cardId, $filename);
-        $response = $this->controller->sendPacket($packet);
-
-        if (!$response->isSuccess()) {
-            throw new FileTransferException("Failed to open file for reading: " . $response->getReturnCodeMessage());
-        }
-
-        $fileSize = $response->getFileSize();
-        $fileData = '';
-        $bytesRead = 0;
-
-        // Read data in blocks
-        while ($bytesRead < $fileSize) {
-            $blockSize = min($this->blockSize, $fileSize - $bytesRead);
-
-            $packet = PacketBuilder::createReadFileDataPacket($cardId, $blockSize);
-            $response = $this->controller->sendPacket($packet);
-
-            if (!$response->isSuccess()) {
-                throw new FileTransferException("Failed to read file data: " . $response->getReturnCodeMessage());
-            }
-
-            $blockData = $response->getFileData();
-            $fileData .= $blockData;
-            $bytesRead += strlen($blockData);
-
-            // Call progress callback if set
-            if ($this->progressCallback) {
-                $progress = ($bytesRead / $fileSize) * 100;
-                call_user_func($this->progressCallback, $progress, $bytesRead, $fileSize);
-            }
-        }
-
-        // Close file
-        $packet = PacketBuilder::createCloseFilePacket($cardId);
-        $response = $this->controller->sendPacket($packet);
-
-        if (!$response->isSuccess()) {
-            throw new FileTransferException("Failed to close file: " . $response->getReturnCodeMessage());
-        }
-
-        // Save to local file
-        $localDir = dirname($localPath);
-        if (!is_dir($localDir)) {
-            if (!mkdir($localDir, 0755, true)) {
-                throw new FileException("Failed to create directory: $localDir");
-            }
-        }
-
-        if (file_put_contents($localPath, $fileData) === false) {
-            throw new FileException("Failed to save file: $localPath");
-        }
+        throw new FileException('File verification is not currently supported. Only file deletion and disk space queries are available.');
     }
 }

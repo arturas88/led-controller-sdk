@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Vertical alignment enumeration
+ * Vertical alignment enumeration.
  */
 enum VerticalAlignment: int
 {
@@ -12,7 +14,7 @@ enum VerticalAlignment: int
     case BOTTOM = 2;
 
     /**
-     * Get vertical alignment name
+     * Get vertical alignment name.
      */
     public function getName(): string
     {
@@ -24,7 +26,7 @@ enum VerticalAlignment: int
     }
 
     /**
-     * Get CSS equivalent
+     * Get CSS equivalent.
      */
     public function getCssValue(): string
     {

@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Enum;
 
 /**
- * Return code enumeration
+ * Return code enumeration.
  */
 enum ReturnCode: int
 {
@@ -17,7 +19,7 @@ enum ReturnCode: int
     case UNKNOWN_ERROR = 0xFF;
 
     /**
-     * Get return code message
+     * Get return code message.
      */
     public function getMessage(): string
     {
@@ -34,7 +36,7 @@ enum ReturnCode: int
     }
 
     /**
-     * Check if return code indicates success
+     * Check if return code indicates success.
      */
     public function isSuccess(): bool
     {
@@ -42,7 +44,7 @@ enum ReturnCode: int
     }
 
     /**
-     * Check if return code indicates an error
+     * Check if return code indicates an error.
      */
     public function isError(): bool
     {
@@ -50,7 +52,7 @@ enum ReturnCode: int
     }
 
     /**
-     * Get severity level
+     * Get severity level.
      */
     public function getSeverity(): string
     {
@@ -63,7 +65,7 @@ enum ReturnCode: int
     }
 
     /**
-     * Get return code from integer value
+     * Get return code from integer value.
      */
     public static function fromInt(int $code): self
     {
@@ -80,7 +82,7 @@ enum ReturnCode: int
     }
 
     /**
-     * Get return code message (for backward compatibility)
+     * Get return code message (for backward compatibility).
      */
     public static function getReturnCodeMessage(int $code): string
     {

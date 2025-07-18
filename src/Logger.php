@@ -1,32 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController;
 
 use LEDController\Exception\LoggerException;
 
 /**
- * Logger for the LED Controller SDK
+ * Logger for the LED Controller SDK.
  */
 class Logger
 {
-    private string $logFile;
-    private string $logLevel;
-    private static ?Logger $instance = null;
-
     // Log levels
-    const DEBUG = 0;
-    const INFO = 1;
-    const WARNING = 2;
-    const ERROR = 3;
-    const CRITICAL = 4;
+    public const DEBUG = 0;
+    public const INFO = 1;
+    public const WARNING = 2;
+    public const ERROR = 3;
+    public const CRITICAL = 4;
 
     private const LEVEL_NAMES = [
         self::DEBUG => 'DEBUG',
         self::INFO => 'INFO',
         self::WARNING => 'WARNING',
         self::ERROR => 'ERROR',
-        self::CRITICAL => 'CRITICAL'
+        self::CRITICAL => 'CRITICAL',
     ];
+
+    private string $logFile;
+
+    private string $logLevel;
+
+    private static ?Logger $instance = null;
 
     public function __construct(?string $logFile = null, string $logLevel = 'info')
     {
@@ -36,40 +40,21 @@ class Logger
     }
 
     /**
-     * Get singleton instance
+     * Get singleton instance.
      */
-    public static function getInstance(): Logger
+    public static function getInstance(): self
     {
         if (self::$instance === null) {
             self::$instance = new self();
         }
+
         return self::$instance;
     }
 
     /**
-     * Get default log file path
-     */
-    private function getDefaultLogPath(): string
-    {
-        $logDir = dirname(__DIR__, 2) . '/logs';
-        return $logDir . '/led-controller-' . date('Y-m-d') . '.log';
-    }
-
-    /**
-     * Ensure log directory exists
-     */
-    private function ensureLogDirectory(): void
-    {
-        $logDir = dirname($this->logFile);
-        if (!is_dir($logDir)) {
-            if (!mkdir($logDir, 0755, true)) {
-                throw new LoggerException("Failed to create log directory: $logDir");
-            }
-        }
-    }
-
-    /**
-     * Log debug message
+     * Log debug message.
+     *
+     * @param array<string, mixed> $context Additional context data
      */
     public function debug(string $message, array $context = []): void
     {
@@ -77,7 +62,9 @@ class Logger
     }
 
     /**
-     * Log info message
+     * Log info message.
+     *
+     * @param array<string, mixed> $context Additional context data
      */
     public function info(string $message, array $context = []): void
     {
@@ -85,7 +72,9 @@ class Logger
     }
 
     /**
-     * Log warning message
+     * Log warning message.
+     *
+     * @param array<string, mixed> $context Additional context data
      */
     public function warning(string $message, array $context = []): void
     {
@@ -93,7 +82,9 @@ class Logger
     }
 
     /**
-     * Log error message
+     * Log error message.
+     *
+     * @param array<string, mixed> $context Additional context data
      */
     public function error(string $message, array $context = []): void
     {
@@ -101,7 +92,9 @@ class Logger
     }
 
     /**
-     * Log critical message
+     * Log critical message.
+     *
+     * @param array<string, mixed> $context Additional context data
      */
     public function critical(string $message, array $context = []): void
     {
@@ -109,21 +102,48 @@ class Logger
     }
 
     /**
-     * Log protocol communication
+     * Log protocol communication.
+     *
+     * @param array<string, mixed> $context Additional context data
      */
     public function protocol(string $direction, string $data, array $context = []): void
     {
         $context['protocol'] = [
             'direction' => $direction,
             'data' => bin2hex($data),
-            'size' => strlen($data)
+            'size' => \strlen($data),
         ];
 
         $this->debug("Protocol {$direction}: " . bin2hex($data), $context);
     }
 
     /**
-     * Log message with level
+     * Get default log file path.
+     */
+    private function getDefaultLogPath(): string
+    {
+        $logDir = \dirname(__DIR__, 2) . '/logs';
+
+        return $logDir . '/led-controller-' . date('Y-m-d') . '.log';
+    }
+
+    /**
+     * Ensure log directory exists.
+     */
+    private function ensureLogDirectory(): void
+    {
+        $logDir = \dirname($this->logFile);
+        if (!is_dir($logDir)) {
+            if (!mkdir($logDir, 0o755, true)) {
+                throw new LoggerException("Failed to create log directory: {$logDir}");
+            }
+        }
+    }
+
+    /**
+     * Log message with level.
+     *
+     * @param array<string, mixed> $context Additional context data
      */
     private function log(int $level, string $message, array $context = []): void
     {
@@ -132,24 +152,26 @@ class Logger
     }
 
     /**
-     * Format log entry
+     * Format log entry.
+     *
+     * @param array<string, mixed> $context Additional context data
      */
     private function formatLogEntry(int $level, string $message, array $context): string
     {
         $timestamp = date('Y-m-d H:i:s');
         $levelName = self::LEVEL_NAMES[$level] ?? 'UNKNOWN';
 
-        $entry = "[$timestamp] [$levelName] $message";
+        $entry = "[{$timestamp}] [{$levelName}] {$message}";
 
         if (!empty($context)) {
-            $entry .= " " . json_encode($context);
+            $entry .= ' ' . json_encode($context);
         }
 
         return $entry . "\n";
     }
 
     /**
-     * Write log to file
+     * Write log to file.
      */
     private function writeLog(string $logEntry): void
     {

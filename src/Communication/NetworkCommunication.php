@@ -1,22 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LEDController\Communication;
 
+use LEDController\Exception\CommunicationException;
+use LEDController\Exception\ConnectionException;
+use LEDController\Exception\TimeoutException;
 use LEDController\Interface\CommunicationInterface;
 use LEDController\Packet;
 use LEDController\Response;
-use LEDController\Exception\ConnectionException;
-use LEDController\Exception\CommunicationException;
-use LEDController\Exception\TimeoutException;
 
 /**
- * Network communication implementation
+ * Network communication implementation.
  */
 class NetworkCommunication implements CommunicationInterface
 {
+    /**
+     * @var array<string, mixed> Network configuration
+     */
     private array $config;
+
+    /** @phpstan-ignore-next-line */
     private $socket = null;
 
+    /**
+     * @param array<string, mixed> $config Network configuration
+     */
     public function __construct(array $config)
     {
         $this->config = $config;
@@ -27,7 +37,7 @@ class NetworkCommunication implements CommunicationInterface
         $this->socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 
         if ($this->socket === false) {
-            throw new ConnectionException("Failed to create socket: " . socket_strerror(socket_last_error()));
+            throw new ConnectionException('Failed to create socket: ' . socket_strerror(socket_last_error()));
         }
 
         // Set non-blocking for connection test
@@ -41,26 +51,29 @@ class NetworkCommunication implements CommunicationInterface
                 $errorMsg = socket_strerror($error);
                 socket_close($this->socket);
                 $this->socket = null;
-                throw new ConnectionException("Failed to connect to {$this->config['ip']}:{$this->config['port']}: $errorMsg");
+
+                throw new ConnectionException("Failed to connect to {$this->config['ip']}:{$this->config['port']}: {$errorMsg}");
             }
         }
 
         // Wait for connection to complete
         $write = [$this->socket];
         $read = $except = [];
-        $timeout = intval($this->config['timeout'] / 1000);
+        $timeout = (int) ($this->config['timeout'] / 1000);
 
         $ready = socket_select($read, $write, $except, $timeout);
 
         if ($ready === false) {
             socket_close($this->socket);
             $this->socket = null;
-            throw new ConnectionException("Connection failed: " . socket_strerror(socket_last_error()));
+
+            throw new ConnectionException('Connection failed: ' . socket_strerror(socket_last_error()));
         }
 
         if ($ready === 0) {
             socket_close($this->socket);
             $this->socket = null;
+
             throw new ConnectionException("Connection timeout to {$this->config['ip']}:{$this->config['port']}");
         }
 
@@ -69,12 +82,13 @@ class NetworkCommunication implements CommunicationInterface
         if ($error !== 0) {
             socket_close($this->socket);
             $this->socket = null;
-            throw new ConnectionException("Connection failed: " . socket_strerror($error));
+
+            throw new ConnectionException('Connection failed: ' . socket_strerror($error));
         }
 
         // Set blocking mode and timeouts
         socket_set_block($this->socket);
-        $timeout = ['sec' => intval($this->config['timeout'] / 1000), 'usec' => 0];
+        $timeout = ['sec' => (int) ($this->config['timeout'] / 1000), 'usec' => 0];
         socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, $timeout);
         socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, $timeout);
 
@@ -92,7 +106,7 @@ class NetworkCommunication implements CommunicationInterface
     public function send(Packet $packet): Response
     {
         if (!$this->isConnected()) {
-            throw new ConnectionException("Not connected");
+            throw new ConnectionException('Not connected');
         }
 
         // Build the packet data directly for network protocol
@@ -107,7 +121,7 @@ class NetworkCommunication implements CommunicationInterface
         // 2. Calculate network data length (from "Packet type" to "Packet data checksum")
         // For basic protocol: packetType(1) + cardType(1) + cardId(1) + cmd(1) + additional(1) + data + checksum(2)
         // For external calls (0x7B): same structure but with external calls data format
-        $networkDataLength = strlen($packetData) + 2; // +2 for checksum
+        $networkDataLength = \strlen($packetData) + 2; // +2 for checksum
         $networkPacket .= pack('v', $networkDataLength); // FIXED: Use little-endian 'v' instead of big-endian 'n'
 
         // 3. Reservation (2 bytes)
@@ -118,17 +132,17 @@ class NetworkCommunication implements CommunicationInterface
 
         // 5. Calculate and add checksum (2 bytes, low byte first)
         $checksum = 0;
-        for ($i = 0; $i < strlen($packetData); $i++) {
-            $checksum += ord($packetData[$i]);
+        for ($i = 0; $i < \strlen($packetData); $i++) {
+            $checksum += \ord($packetData[$i]);
             $checksum &= 0xFFFF;
         }
         $networkPacket .= pack('v', $checksum);
 
         // Send data
-        $sent = @socket_write($this->socket, $networkPacket, strlen($networkPacket));
+        $sent = @socket_write($this->socket, $networkPacket, \strlen($networkPacket));
 
         if ($sent === false) {
-            throw new CommunicationException("Failed to send data: " . socket_strerror(socket_last_error($this->socket)));
+            throw new CommunicationException('Failed to send data: ' . socket_strerror(socket_last_error($this->socket)));
         }
 
         // Read response
@@ -148,15 +162,15 @@ class NetworkCommunication implements CommunicationInterface
         $networkHeader = '';
         $networkHeaderLength = 8;
 
-        while (strlen($networkHeader) < $networkHeaderLength) {
-            $chunk = @socket_read($this->socket, $networkHeaderLength - strlen($networkHeader));
+        while (\strlen($networkHeader) < $networkHeaderLength) {
+            $chunk = @socket_read($this->socket, $networkHeaderLength - \strlen($networkHeader));
 
             if ($chunk === false) {
-                throw new CommunicationException("Failed to read response header: " . socket_strerror(socket_last_error($this->socket)));
+                throw new CommunicationException('Failed to read response header: ' . socket_strerror(socket_last_error($this->socket)));
             }
 
             if ($chunk === '') {
-                throw new TimeoutException("Timeout reading response header");
+                throw new TimeoutException('Timeout reading response header');
             }
 
             $networkHeader .= $chunk;
@@ -170,15 +184,15 @@ class NetworkCommunication implements CommunicationInterface
         // Read the network data (packet type to checksum)
         $networkData = '';
 
-        while (strlen($networkData) < $dataLength) {
-            $chunk = @socket_read($this->socket, $dataLength - strlen($networkData));
+        while (\strlen($networkData) < $dataLength) {
+            $chunk = @socket_read($this->socket, $dataLength - \strlen($networkData));
 
             if ($chunk === false) {
-                throw new CommunicationException("Failed to read response data: " . socket_strerror(socket_last_error($this->socket)));
+                throw new CommunicationException('Failed to read response data: ' . socket_strerror(socket_last_error($this->socket)));
             }
 
             if ($chunk === '') {
-                throw new TimeoutException("Timeout reading response data");
+                throw new TimeoutException('Timeout reading response data');
             }
 
             $networkData .= $chunk;
@@ -186,19 +200,19 @@ class NetworkCommunication implements CommunicationInterface
 
         // For network protocol, the response data already contains the packet structure
         // Just need to extract the core data and reformat for Response::parse()
-        if (strlen($networkData) < 7) {
-            throw new CommunicationException("Invalid network response data length");
+        if (\strlen($networkData) < 7) {
+            throw new CommunicationException('Invalid network response data length');
         }
 
         // Extract checksum (last 2 bytes)
-        $checksumPos = strlen($networkData) - 2;
+        $checksumPos = \strlen($networkData) - 2;
         $actualData = substr($networkData, 0, $checksumPos);
         $receivedChecksum = substr($networkData, $checksumPos, 2);
 
         // Verify checksum
         $calculatedChecksum = 0;
-        for ($i = 0; $i < strlen($actualData); $i++) {
-            $calculatedChecksum += ord($actualData[$i]);
+        for ($i = 0; $i < \strlen($actualData); $i++) {
+            $calculatedChecksum += \ord($actualData[$i]);
             $calculatedChecksum &= 0xFFFF;
         }
 
@@ -208,31 +222,33 @@ class NetworkCommunication implements CommunicationInterface
 
         if ($calculatedChecksum !== $checksumLittleEndian && $calculatedChecksum !== $checksumBigEndian) {
             throw new CommunicationException(
-                sprintf(
-                    "Checksum mismatch: calculated %04X, received %04X (LE) / %04X (BE)",
+                \sprintf(
+                    'Checksum mismatch: calculated %04X, received %04X (LE) / %04X (BE)',
                     $calculatedChecksum,
                     $checksumLittleEndian,
-                    $checksumBigEndian
-                )
+                    $checksumBigEndian,
+                ),
             );
         }
 
         // For network protocol, the response data doesn't contain its own checksum
         // We need to add a dummy checksum for Response::parse to work correctly
         $dummyChecksum = $this->calculateChecksum($actualData);
+
         return $actualData . pack('v', $dummyChecksum);
     }
 
     /**
-     * Calculate checksum for data
+     * Calculate checksum for data.
      */
     private function calculateChecksum(string $data): int
     {
         $checksum = 0;
-        for ($i = 0; $i < strlen($data); $i++) {
-            $checksum += ord($data[$i]);
+        for ($i = 0; $i < \strlen($data); $i++) {
+            $checksum += \ord($data[$i]);
             $checksum &= 0xFFFF;
         }
+
         return $checksum;
     }
 }
