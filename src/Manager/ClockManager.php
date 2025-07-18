@@ -653,7 +653,7 @@ class ClockManager
         // Check if text contains only GB2312 compatible characters
         $converted = @mb_convert_encoding($text, 'GB2312', 'UTF-8');
 
-        if ($converted === false) {
+        if ($converted === false || !is_string($converted)) {
             return false;
         }
 
