@@ -7,6 +7,7 @@ parameters:
         - coverage
         - tests
     tmpDir: var/cache/phpstan
+    treatPhpDocTypesAsCertain: false
     ignoreErrors:
         # Allow unused properties (common in SDK classes for future use)
         - '#Property .* is never read, only written#'

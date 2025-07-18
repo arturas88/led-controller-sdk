@@ -39,6 +39,9 @@ class TemperatureManager
     /**
      * @var array<string, mixed> Temperature display settings
      */
+    /**
+     * @var array<int, array<string, mixed>> Temperature display settings
+     */
     private array $temperatureSettings = [];
 
     /**
@@ -245,7 +248,6 @@ class TemperatureManager
      */
     public function getTemperatureSettings(int $windowNo): ?array
     {
-        /** @phpstan-ignore-next-line */
         return $this->temperatureSettings[$windowNo] ?? null;
     }
 
@@ -263,8 +265,9 @@ class TemperatureManager
         ]);
 
         // Remove settings
-        /** @phpstan-ignore-next-line */
-        unset($this->temperatureSettings[$windowNo]);
+        if (isset($this->temperatureSettings[$windowNo])) {
+            unset($this->temperatureSettings[$windowNo]);
+        }
 
         return $this;
     }

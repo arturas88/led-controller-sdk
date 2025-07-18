@@ -45,7 +45,7 @@ class ClockManager
     private LEDController $controller;
 
     /**
-     * @var array<string, mixed> Clock display settings
+     * @var array<int, array<string, mixed>> Clock display settings
      */
     private array $clockSettings = [];
 
@@ -267,7 +267,6 @@ class ClockManager
      */
     public function getClockSettings(int $windowNo): ?array
     {
-        /** @phpstan-ignore-next-line */
         return $this->clockSettings[$windowNo] ?? null;
     }
 
@@ -285,8 +284,9 @@ class ClockManager
         ]);
 
         // Remove settings
-        /** @phpstan-ignore-next-line */
-        unset($this->clockSettings[$windowNo]);
+        if (isset($this->clockSettings[$windowNo])) {
+            unset($this->clockSettings[$windowNo]);
+        }
 
         return $this;
     }
